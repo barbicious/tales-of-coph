@@ -13,6 +13,10 @@ add_executable(talesofcoph src/main.c
         src/window.h
         src/sprite_sheet.c
         src/sprite_sheet.h
+        src/font.c
+        src/font.h
+        src/arcade.c
+        src/arcade.h
 )
 
 target_link_libraries(talesofcoph PRIVATE SDL2 m)

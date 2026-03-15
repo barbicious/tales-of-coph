@@ -1,10 +1,12 @@
 #include "state.h"
 
+#include "renderer.h"
+
 #include <SDL2/SDL.h>
 
 #define NS_PER_TICK (1.0 / 60.0)
 
-void state_init(state_t *state, void (*tick)(struct state *state), void (*blit)(struct state *state)) {
+void state_init(state_t* state, void (*tick)(struct state* state), void (*blit)(struct state* state)) {
     if (SDL_Init(SDL_INIT_EVERYTHING) == 0) {
         SDL_Quit();
     }
@@ -13,7 +15,7 @@ void state_init(state_t *state, void (*tick)(struct state *state), void (*blit)(
     state->blit = blit;
 
     window_t window = {0};
-    window_init(&window, "Tales of Coph", 1280, 720);
+    window_init(&window, string_new("Tales of Coph"), SCREEN_WIDTH * PIXEL_SCALE, SCREEN_HEIGHT * PIXEL_SCALE);
     state->window = window;
 
     renderer_t renderer = {0};
@@ -25,9 +27,18 @@ void state_init(state_t *state, void (*tick)(struct state *state), void (*blit)(
     sprite_sheet_t sprite_sheet = {0};
     sprite_sheet_init(&sprite_sheet, string_new("../res/tiles.png"));
     state->sprite_sheet = sprite_sheet;
+
+    bitmap_font_t font = {0};
+    bitmap_font_init(&font);
+    state->font = font;
 }
 
-void state_loop(state_t *state) {
+void state_destroy(state_t* state) {
+    bitmap_font_destroy(&state->font);
+    sprite_sheet_destroy(&state->sprite_sheet);
+}
+
+void state_loop(state_t* state) {
     f64 tick_current_time = (f64)SDL_GetPerformanceCounter() / (f64)SDL_GetPerformanceFrequency();
     f64 tick_last_time = tick_current_time;
 
@@ -69,7 +80,6 @@ void state_loop(state_t *state) {
         }
 
         renderer_flush(&state->renderer);
-        renderer_blit_palette(&state->renderer);
 
         state->blit(state);
 
@@ -78,4 +88,6 @@ void state_loop(state_t *state) {
 
         renderer_display(&state->renderer);
     }
+
+    state_destroy(state);
 }

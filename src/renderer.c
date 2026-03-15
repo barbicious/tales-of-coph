@@ -1,5 +1,6 @@
 #include "renderer.h"
 
+#include <assert.h>
 #include <string.h>
 #include <SDL2/SDL_hints.h>
 #include <SDL2/SDL_render.h>
@@ -19,21 +20,22 @@
     return (((color * 100) % 10) + ((color * 10) % 10) + (color % 10));
 }
 
-[[nodiscard]] i32 rgb_to_palette(i32 r, i32 b, i32 g) {
+[[nodiscard]] i32 rgb_to_palette(i32 r, i32 g, i32 b) {
     if (r < 0 || g < 0 || b < 0)
         return 0;
 
     return color_map(r * (255.0 / 5.0)) * 36 +
-        color_map(g * (255.0 / 5.0)) * 36 +
-            color_map(b * (255.0 / 5.0)) * 36;
+        color_map(g * (255.0 / 5.0)) * 6 +
+        color_map(b * (255.0 / 5.0));
 }
 
-void renderer_init(renderer_t *renderer, SDL_Window *window) {
+void renderer_init(renderer_t* renderer, SDL_Window* window) {
     memset(renderer->pixels, 0, sizeof(renderer->pixels));
     memset(renderer->palette, 0, sizeof(renderer->palette));
 
     renderer->renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC);
-    renderer->texture = SDL_CreateTexture(renderer->renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, SCREEN_WIDTH, SCREEN_HEIGHT);
+    renderer->texture = SDL_CreateTexture(renderer->renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING,
+                                          SCREEN_WIDTH, SCREEN_HEIGHT);
 
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
 
@@ -59,12 +61,12 @@ void renderer_init(renderer_t *renderer, SDL_Window *window) {
     }
 }
 
-void renderer_flush(renderer_t *renderer) {
+void renderer_flush(renderer_t* renderer) {
     memset(renderer->pixels, 0, sizeof(renderer->pixels));
     SDL_RenderClear(renderer->renderer);
 }
 
-void renderer_blit_palette(renderer_t *renderer) {
+void renderer_blit_palette(renderer_t* renderer) {
     for (i32 y = 0; y < SCREEN_HEIGHT; y++) {
         for (i32 x = 0; x < SCREEN_WIDTH; x++) {
             const u32 palette_index = (x + y) % PALETTE_SIZE;
@@ -81,5 +83,7 @@ void renderer_display(renderer_t* renderer) {
 }
 
 void renderer_set_pixel(renderer_t* renderer, i32 x, i32 y, u32 palette_index) {
+    assert(palette_index < PALETTE_SIZE);
+
     renderer->pixels[y * SCREEN_WIDTH + x] = renderer->palette[palette_index];
 }

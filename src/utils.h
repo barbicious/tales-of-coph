@@ -28,26 +28,26 @@ typedef u32 b32;
 #include <stddef.h>
 
 typedef struct string {
-    char *data;
+    char* data;
     size_t length;
 } string_t;
 
-string_t string_new(const char *str);
-void string_free(string_t *string);
+string_t string_new(const char* str);
+void string_free(string_t* string);
 
 #ifdef UTILS_IMPL
 
 #include <stdlib.h>
 #include <string.h>
 
-string_t string_new(const char *str) {
+string_t string_new(const char* str) {
     string_t ret;
     ret.data = strdup(str);
     ret.length = strlen(str);
     return ret;
 }
 
-void string_free(string_t *string) {
+void string_free(string_t* string) {
     if (string != nullptr) {
         free(string->data);
         string->data = nullptr;
