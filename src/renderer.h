@@ -9,9 +9,9 @@
 
 #define CHANNELS 6
 
-#define PALETTE_SIZE (CHANNELS * CHANNELS * CHANNELS)
+#define PALETTE_SIZE ((CHANNELS * CHANNELS * CHANNELS) + 1)
 
-[[nodiscard]] i32 rgb_to_palette(i32 r, i32 b, i32 g);
+[[nodiscard]] i32 rgb_to_palette(i32 r, i32 g, i32 b);
 
 struct SDL_Renderer;
 struct SDL_Window;

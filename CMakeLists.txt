@@ -17,6 +17,13 @@ add_executable(talesofcoph src/main.c
         src/font.h
         src/arcade.c
         src/arcade.h
+        src/tile.c
+        src/tile.h
+        src/keyboard.c
+        src/keyboard.h
+        src/camera.h
+        src/pawn.c
+        src/pawn.h
 )
 
 target_link_libraries(talesofcoph PRIVATE SDL2 m)

@@ -31,6 +31,14 @@ void state_init(state_t* state, void (*tick)(struct state* state), void (*blit)(
     bitmap_font_t font = {0};
     bitmap_font_init(&font);
     state->font = font;
+
+    arcade_t arcade = {0};
+    arcade_init(&arcade);
+    state->arcade = arcade;
+
+    keyboard_t keyboard = {0};
+    keyboard_init(&keyboard);
+    state->keyboard = keyboard;
 }
 
 void state_destroy(state_t* state) {
@@ -76,6 +84,7 @@ void state_loop(state_t* state) {
             ticks++;
             state->ticks++;
 
+            keyboard_tick(&state->keyboard);
             state->tick(state);
         }
 

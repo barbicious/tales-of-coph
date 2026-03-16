@@ -1,9 +1,12 @@
 #pragma once
 
+#include "arcade.h"
 #include "renderer.h"
 #include "window.h"
 #include "sprite_sheet.h"
 #include "font.h"
+#include "keyboard.h"
+#include "camera.h"
 
 typedef struct state {
     bool running;
@@ -12,6 +15,13 @@ typedef struct state {
 
     void (*tick)(struct state* state);
     void (*blit)(struct state* state);
+
+    camera_t camera;
+
+    keyboard_t keyboard;
+
+    // TODO: Use union for scenes
+    arcade_t arcade;
 
     window_t window;
     bitmap_font_t font;

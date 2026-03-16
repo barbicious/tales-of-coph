@@ -38,26 +38,50 @@ void sprite_sheet_init(sprite_sheet_t* sprite_sheet, string_t file_path) {
     string_free(&file_path);
 }
 
-void sprite_sheet_blit_sprite(sprite_sheet_t* sprite_sheet, renderer_t* renderer, i32 ox, i32 oy, u32 sx, u32 sy, u32 width, u32 height, i32 colors[]) {
-    for (i32 y = 0; y < height; y++) {
-        i32 py = oy + y;
+void sprite_sheet_blit_sprite(sprite_sheet_t* sprite_sheet, renderer_t* renderer, i32 ox, i32 oy, u32 sx, u32 sy, u32 width, u32 height, i32 colors[], u32 flags) {
+    if (flags == FLIP_NONE) {
+        for (i32 y = 0; y < height; y++) {
+            i32 py = oy + y;
 
-        if (py < 0 || py >= SCREEN_HEIGHT) {
-            continue;
+            if (py < 0 || py >= SCREEN_HEIGHT) {
+                continue;
+            }
+
+            for (i32 x = 0; x < width; x++) {
+                i32 px = ox + x;
+
+                if (px < 0 || px >= SCREEN_WIDTH) {
+                    continue;
+                }
+
+                if (SPRITE_SHEET_PIXEL(sx + x, sy + y) == OPAQUE || colors[SPRITE_SHEET_PIXEL(x + sx, y + sy)] == OPAQUE) {
+                    continue;
+                }
+
+                renderer_set_pixel(renderer, px, py, colors[SPRITE_SHEET_PIXEL(x + sx, y + sy)]);
+            }
         }
+    } else if (flags == FLIP_HORIZONTAL) {
+        for (i32 y = 0; y < height; y++) {
+            i32 py = oy + y;
 
-        for (i32 x = 0; x < width; x++) {
-            i32 px = ox + x;
-
-            if (px < 0 || px >= SCREEN_WIDTH) {
+            if (py < 0 || py >= SCREEN_HEIGHT) {
                 continue;
             }
 
-            if (SPRITE_SHEET_PIXEL(sx + x, sy + y) == OPAQUE) {
-                continue;
-            }
+            for (i32 x = 0; x < width; x++) {
+                i32 px = ox + x;
 
-            renderer_set_pixel(renderer, px, py, colors[SPRITE_SHEET_PIXEL(x + sx, y + sy)]);
+                if (px < 0 || px >= SCREEN_WIDTH) {
+                    continue;
+                }
+
+                if (SPRITE_SHEET_PIXEL(width - x + sx, sy + y) == OPAQUE || colors[SPRITE_SHEET_PIXEL(width - x + sx, y + sy)] == OPAQUE) {
+                    continue;
+                }
+
+                renderer_set_pixel(renderer, px, py, colors[SPRITE_SHEET_PIXEL(width - x + sx, y + sy)]);
+            }
         }
     }
 }

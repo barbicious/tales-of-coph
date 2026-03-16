@@ -58,3 +58,9 @@ void string_free(string_t* string) {
 #endif
 
 #pragma endregion string
+
+#pragma region list
+
+
+
+#pragma endregion list
