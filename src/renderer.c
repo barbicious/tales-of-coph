@@ -87,3 +87,11 @@ void renderer_set_pixel(renderer_t* renderer, i32 x, i32 y, u32 palette_index) {
 
     renderer->pixels[y * SCREEN_WIDTH + x] = renderer->palette[palette_index];
 }
+
+void renderer_blit_rect(renderer_t* renderer, i32 ox, i32 oy, i32 width, i32 height, u32 palette_index) {
+    for (i32 y = oy; y < oy + height; y++) {
+        for (i32 x = ox; x < ox + width; x++) {
+            renderer_set_pixel(renderer, x, y, palette_index);
+        }
+    }
+}

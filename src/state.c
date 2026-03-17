@@ -15,7 +15,7 @@ void state_init(state_t* state, void (*tick)(struct state* state), void (*blit)(
     state->blit = blit;
 
     window_t window = {0};
-    window_init(&window, string_new("Tales of Coph"), SCREEN_WIDTH * PIXEL_SCALE, SCREEN_HEIGHT * PIXEL_SCALE);
+    window_init(&window, string_create("Tales of Coph"), SCREEN_WIDTH * PIXEL_SCALE, SCREEN_HEIGHT * PIXEL_SCALE);
     state->window = window;
 
     renderer_t renderer = {0};
@@ -25,7 +25,7 @@ void state_init(state_t* state, void (*tick)(struct state* state), void (*blit)(
     state->running = true;
 
     sprite_sheet_t sprite_sheet = {0};
-    sprite_sheet_init(&sprite_sheet, string_new("../res/tiles.png"));
+    sprite_sheet_init(&sprite_sheet, string_create("../res/tiles.png"));
     state->sprite_sheet = sprite_sheet;
 
     bitmap_font_t font = {0};

@@ -29,3 +29,4 @@ void renderer_blit_palette(renderer_t* renderer);
 void renderer_display(renderer_t* renderer);
 void renderer_flush(renderer_t* renderer);
 void renderer_set_pixel(renderer_t* renderer, i32 x, i32 y, u32 palette_index);
+void renderer_blit_rect(renderer_t* renderer, i32 ox, i32 oy, i32 width, i32 height, u32 palette_index);

@@ -1,8 +1,13 @@
 #include "tile.h"
 
+#include <stdio.h>
 #include <string.h>
 
 #include "state.h"
+
+#define TILE_GROUND_COLOR (rgb_to_palette(4, 3, 2))
+
+tile_t tiles[MAX_TILES];
 
 #pragma region tile_blit_fns
 
@@ -10,6 +15,13 @@
 
 #define MUL_TILE_W(n) ((n * TILE_WIDTH) - state->camera.tx)
 #define MUL_TILE_H(n) ((n * TILE_HEIGHT) - state->camera.ty)
+
+void dirt_tile_blit(tile_t* tile, state_t* state, i32 x, i32 y) {
+    sprite_sheet_blit_sprite(&state->sprite_sheet, &state->renderer, MUL_TILE_W(x), MUL_TILE_H(y), 24 + ((x + 1) & 1) * TILE_SPRITE_WIDTH, ((y - 3) & 1) * TILE_SPRITE_HEIGHT, TILE_SPRITE_WIDTH, TILE_SPRITE_HEIGHT, tile->colors, FLIP_NONE);
+    sprite_sheet_blit_sprite(&state->sprite_sheet, &state->renderer, MUL_TILE_W(x) + 8, MUL_TILE_H(y), 24 + ((x + 1) & 1) * TILE_SPRITE_WIDTH, ((y - 3) & 1) * TILE_SPRITE_HEIGHT, TILE_SPRITE_WIDTH, TILE_SPRITE_HEIGHT, tile->colors, FLIP_NONE);
+    sprite_sheet_blit_sprite(&state->sprite_sheet, &state->renderer, MUL_TILE_W(x), MUL_TILE_H(y) + 8, 24 + ((x + 1) & 1) * TILE_SPRITE_WIDTH, ((y - 3) & 1) * TILE_SPRITE_HEIGHT, TILE_SPRITE_WIDTH, TILE_SPRITE_HEIGHT, tile->colors, FLIP_NONE);
+    sprite_sheet_blit_sprite(&state->sprite_sheet, &state->renderer, MUL_TILE_W(x) + 8, MUL_TILE_H(y) + 8, 24 + ((x + 1) & 1) * TILE_SPRITE_WIDTH, ((y - 3) & 1) * TILE_SPRITE_HEIGHT, TILE_SPRITE_WIDTH, TILE_SPRITE_HEIGHT, tile->colors, FLIP_NONE);
+}
 
 void ground_tile_blit(tile_t* tile, state_t* state, i32 x, i32 y) {
     bool u = tiles[arcade_get_tile_at(&state->arcade, x, y - 1)].tile_blit == tile->tile_blit;
@@ -66,6 +78,73 @@ void ground_tile_blit(tile_t* tile, state_t* state, i32 x, i32 y) {
     }
 }
 
+void stone_tile_blit(tile_t* tile, state_t* state, i32 x, i32 y) {
+    bool u = tiles[arcade_get_tile_at(&state->arcade, x, y - 1)].tile_blit == tile->tile_blit;
+    bool d = tiles[arcade_get_tile_at(&state->arcade, x, y + 1)].tile_blit == tile->tile_blit;
+    bool l = tiles[arcade_get_tile_at(&state->arcade, x - 1, y)].tile_blit == tile->tile_blit;
+    bool r = tiles[arcade_get_tile_at(&state->arcade, x + 1, y)].tile_blit == tile->tile_blit;
+
+    bool ur = tiles[arcade_get_tile_at(&state->arcade, x + 1, y - 1)].tile_blit == tile->tile_blit;
+    bool dl = tiles[arcade_get_tile_at(&state->arcade, x - 1, y + 1)].tile_blit == tile->tile_blit;
+    bool ul = tiles[arcade_get_tile_at(&state->arcade, x - 1, y - 1)].tile_blit == tile->tile_blit;
+    bool dr = tiles[arcade_get_tile_at(&state->arcade, x + 1, y + 1)].tile_blit == tile->tile_blit;
+
+    if (u && l && !ul) {
+        sprite_sheet_blit_sprite(&state->sprite_sheet, &state->renderer, MUL_TILE_W(x), MUL_TILE_H(y), 24, 48, TILE_SPRITE_WIDTH, TILE_SPRITE_HEIGHT, tile->colors, FLIP_NONE);
+    } else if (u && l) {
+        sprite_sheet_blit_sprite(&state->sprite_sheet, &state->renderer, MUL_TILE_W(x), MUL_TILE_H(y), 24 + ((x + 1) & 1) * TILE_SPRITE_WIDTH, ((y - 3) & 1) * TILE_SPRITE_HEIGHT, TILE_SPRITE_WIDTH, TILE_SPRITE_HEIGHT, tile->colors, FLIP_NONE);
+    } else {
+        if (u) {
+            sprite_sheet_blit_sprite(&state->sprite_sheet, &state->renderer, MUL_TILE_W(x), MUL_TILE_H(y), 0, 56, 8, 8, tile->colors, FLIP_NONE);
+        } else if (l) {
+            sprite_sheet_blit_sprite(&state->sprite_sheet, &state->renderer, MUL_TILE_W(x), MUL_TILE_H(y), 8, 48, 8, 8, tile->colors, FLIP_NONE);
+        } else {
+            sprite_sheet_blit_sprite(&state->sprite_sheet, &state->renderer, MUL_TILE_W(x), MUL_TILE_H(y), 0, 48, 8, 8, tile->colors, FLIP_NONE);
+        }
+    }
+
+    if (u && r && !ur) {
+        sprite_sheet_blit_sprite(&state->sprite_sheet, &state->renderer, MUL_TILE_W(x) + 8, MUL_TILE_H(y), 32, 48, TILE_SPRITE_WIDTH, TILE_SPRITE_HEIGHT, tile->colors, FLIP_NONE);
+    } else if (u && r) {
+        sprite_sheet_blit_sprite(&state->sprite_sheet, &state->renderer, MUL_TILE_W(x) + 8, MUL_TILE_H(y), 24 + ((x + 1) & 1) * TILE_SPRITE_WIDTH, ((y - 3) & 1) * TILE_SPRITE_HEIGHT, TILE_SPRITE_WIDTH, TILE_SPRITE_HEIGHT, tile->colors, FLIP_NONE);
+    } else {
+        if (u) {
+            sprite_sheet_blit_sprite(&state->sprite_sheet, &state->renderer, MUL_TILE_W(x) + 8, MUL_TILE_H(y), 16, 56, 8, 8, tile->colors, FLIP_NONE);
+        } else if (r) {
+            sprite_sheet_blit_sprite(&state->sprite_sheet, &state->renderer, MUL_TILE_W(x) + 8, MUL_TILE_H(y), 8, 48, 8, 8, tile->colors, FLIP_NONE);
+        } else {
+            sprite_sheet_blit_sprite(&state->sprite_sheet, &state->renderer, MUL_TILE_W(x) + 8, MUL_TILE_H(y), 16, 48, 8, 8, tile->colors, FLIP_NONE);
+        }
+    }
+
+    if (d && l && !dl) {
+        sprite_sheet_blit_sprite(&state->sprite_sheet, &state->renderer, MUL_TILE_W(x), MUL_TILE_H(y) + 8, 24, 56, TILE_SPRITE_WIDTH, TILE_SPRITE_HEIGHT, tile->colors, FLIP_NONE);
+    } else if (d && l) {
+        sprite_sheet_blit_sprite(&state->sprite_sheet, &state->renderer, MUL_TILE_W(x), MUL_TILE_H(y) + 8, 24 + ((x + 1) & 1) * TILE_SPRITE_WIDTH, ((y - 3) & 1) * TILE_SPRITE_HEIGHT, TILE_SPRITE_WIDTH, TILE_SPRITE_HEIGHT, tile->colors, FLIP_NONE);
+    } else {
+        if (d) {
+            sprite_sheet_blit_sprite(&state->sprite_sheet, &state->renderer, MUL_TILE_W(x), MUL_TILE_H(y) + 8, 0, 56, 8, 8, tile->colors, FLIP_NONE);
+        } else if (l) {
+            sprite_sheet_blit_sprite(&state->sprite_sheet, &state->renderer, MUL_TILE_W(x), MUL_TILE_H(y) + 8, 8, 64, 8, 8, tile->colors, FLIP_NONE);
+        } else {
+            sprite_sheet_blit_sprite(&state->sprite_sheet, &state->renderer, MUL_TILE_W(x), MUL_TILE_H(y) + 8, 0, 64, 8, 8, tile->colors, FLIP_NONE);
+        }
+    }
+
+    if (d && r && !dr) {
+        sprite_sheet_blit_sprite(&state->sprite_sheet, &state->renderer, MUL_TILE_W(x) + 8, MUL_TILE_H(y) + 8, 32, 56, TILE_SPRITE_WIDTH, TILE_SPRITE_HEIGHT, tile->colors, FLIP_NONE);
+    } else if (d && r) {
+        sprite_sheet_blit_sprite(&state->sprite_sheet, &state->renderer, MUL_TILE_W(x) + 8, MUL_TILE_H(y) + 8, 24 + ((x + 1) & 1) * TILE_SPRITE_WIDTH, ((y - 3) & 1) * TILE_SPRITE_HEIGHT, TILE_SPRITE_WIDTH, TILE_SPRITE_HEIGHT, tile->colors, FLIP_NONE);
+    } else {
+        if (d) {
+            sprite_sheet_blit_sprite(&state->sprite_sheet, &state->renderer, MUL_TILE_W(x) + 8, MUL_TILE_H(y) + 8, 16, 56, 8, 8, tile->colors, FLIP_NONE);
+        } else if (r) {
+            sprite_sheet_blit_sprite(&state->sprite_sheet, &state->renderer, MUL_TILE_W(x) + 8, MUL_TILE_H(y) + 8, 8, 64, 8, 8, tile->colors, FLIP_NONE);
+        } else {
+            sprite_sheet_blit_sprite(&state->sprite_sheet, &state->renderer, MUL_TILE_W(x) + 8, MUL_TILE_H(y) + 8, 16, 64, 8, 8, tile->colors, FLIP_NONE);
+        }
+    }
+}
 
 void liquid_tile_blit(tile_t* tile, state_t* state, i32 x, i32 y) {
     bool u = tiles[arcade_get_tile_at(&state->arcade, x, y - 1)].tile_blit == tile->tile_blit;
@@ -124,14 +203,14 @@ void liquid_tile_blit(tile_t* tile, state_t* state, i32 x, i32 y) {
 
 #pragma endregion tile_blit_fns
 
-tile_t tile_init(tile_type_e tile_type) {
+void tile_create(tile_type_e tile_type) {
     tile_t tile = {0};
     tile.tile_type = tile_type;
 
     switch (tile_type) {
         case TILE_GRASS: {
             i32 colors[4] = {
-                rgb_to_palette(4, 3, 2),
+                TILE_GROUND_COLOR,
                 rgb_to_palette(1, 2, 1),
                 rgb_to_palette(1, 3, 1),
                 rgb_to_palette(2, 4, 2),
@@ -143,7 +222,7 @@ tile_t tile_init(tile_type_e tile_type) {
         } break;
         case TILE_WATER: {
             i32 colors[4] = {
-                rgb_to_palette(4, 3, 2),
+                TILE_GROUND_COLOR,
                 rgb_to_palette(3, 2, 1),
                 rgb_to_palette(1, 1, 4),
                 rgb_to_palette(2, 2, 5),
@@ -153,11 +232,33 @@ tile_t tile_init(tile_type_e tile_type) {
             tile.blit = liquid_tile_blit;
             tile.tile_blit = TILE_BLIT_LIQUID;
         } break;
+        case TILE_STONE: {
+            i32 colors[4] = {
+                TILE_GROUND_COLOR,
+                rgb_to_palette(1, 1, 1),
+                rgb_to_palette(2, 2, 2),
+                rgb_to_palette(3, 3, 3),
+            };
+            memcpy(tile.colors, colors, sizeof(colors));
+
+            tile.blit = stone_tile_blit;
+            tile.tile_blit = TILE_BLIT_ROCK;
+        } break;
+        case TILE_DIRT: {
+            i32 colors[4] = {
+                OPAQUE,
+                OPAQUE,
+                TILE_GROUND_COLOR,
+                rgb_to_palette(3, 2, 1),
+            };
+            memcpy(tile.colors, colors, sizeof(colors));
+
+            tile.blit = dirt_tile_blit;
+            tile.tile_blit = TILE_BLIT_NORMAL;
+        } break;
     }
 
     tiles[tile_type] = tile;
-
-    return tile;
 }
 
 void tile_blit(tile_type_e tile_type, state_t* state, i32 x, i32 y) {

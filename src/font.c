@@ -18,7 +18,7 @@ void bitmap_font_init(bitmap_font_t* bitmap_font) {
     bitmap_font->char_width = 8;
     bitmap_font->char_height = 8;
 
-    bitmap_font->chars = string_new("ABCDEFGHIJKLMNOPQRSTUVWXYZ!/<>:+1234567890&=(),.?");
+    bitmap_font->chars = string_create("ABCDEFGHIJKLMNOPQRSTUVWXYZ!/<>:+1234567890&=(),.?");
 }
 
 void bitmap_font_blit_char(bitmap_font_t* bitmap_font, sprite_sheet_t* sprite_sheet, renderer_t* renderer, char character, i32 ox, i32 oy) {

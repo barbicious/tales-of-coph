@@ -9,18 +9,24 @@
 #define TILE_WIDTH 16
 #define TILE_HEIGHT 16
 
+#define AS_TILE_X(x) ((x) / TILE_WIDTH)
+#define AS_TILE_Y(y) ((y) / TILE_HEIGHT)
 
 typedef struct state state_t;
 
 
 typedef enum tile_blit {
-    TILE_BLIT_GROUND,
+    TILE_BLIT_GROUND = 0,
     TILE_BLIT_LIQUID,
+    TILE_BLIT_ROCK,
+    TILE_BLIT_NORMAL,
 } tile_blit_e;
 
 typedef enum tile_type {
     TILE_GRASS = 0,
     TILE_WATER,
+    TILE_STONE,
+    TILE_DIRT,
 } tile_type_e;
 
 
@@ -33,7 +39,7 @@ typedef struct tile {
     i32 colors[4];
 } tile_t;
 
-tile_t tile_init(tile_type_e tile_type);
+void tile_create(tile_type_e tile_type);
 void tile_blit(tile_type_e tile_type, state_t* state, i32 x, i32 y);
 
-static tile_t tiles[MAX_TILES];
+extern tile_t tiles[MAX_TILES];

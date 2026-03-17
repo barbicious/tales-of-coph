@@ -24,6 +24,10 @@ add_executable(talesofcoph src/main.c
         src/camera.h
         src/pawn.c
         src/pawn.h
+        src/hud.c
+        src/hud.h
+        src/item.c
+        src/item.h
 )
 
 target_link_libraries(talesofcoph PRIVATE SDL2 m)

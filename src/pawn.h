@@ -1,10 +1,14 @@
 #pragma once
 #include "utils.h"
 
+extern i32 swing_ticks_left;
+extern i32 stamina_cooldown_ticks_left;
+extern bool overshot_stamina;
+
 typedef struct state state_t;
 
 typedef enum direction {
-    NORTH, SOUTH, EAST, WEST,
+    DIRECTION_NORTH, DIRECTION_SOUTH, DIRECTION_EAST, DIRECTION_WEST
 } direction_e;
 
 typedef enum pawn_type {
@@ -15,8 +19,16 @@ typedef enum pawn_type {
 typedef struct pawn {
     pawn_type_e pawn_type;
     direction_e direction;
+
     i32 x, y;
     i32 dx, dy;
+
+    // Tile position (Centered)
+    i32 tile_x, tile_y;
+
+    i32 health, health_max;
+    i32 stamina, stamina_max;
+
     i32 colors[4];
 } pawn_t;
 
