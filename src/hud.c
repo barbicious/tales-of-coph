@@ -28,9 +28,11 @@ void blit_hud(renderer_t* renderer, sprite_sheet_t* sprite_sheet, pawn_t* pawn) 
 
     for (i32 i = 0; i < pawn->health_max; i++) {
         if (i < pawn->health)
-            sprite_sheet_blit_sprite(sprite_sheet, renderer, i * 8, SCREEN_HEIGHT - HUD_HEIGHT + 2, 72, 0, 8, 8, health_colors, FLIP_NONE);
+            sprite_sheet_blit_sprite(sprite_sheet, renderer, i * 8, SCREEN_HEIGHT - HUD_HEIGHT + 2, 72, 0, 8, 8,
+                                     health_colors, FLIP_NONE);
         else
-            sprite_sheet_blit_sprite(sprite_sheet, renderer, i * 8, SCREEN_HEIGHT - HUD_HEIGHT + 2, 72, 0, 8, 8, dark_health_colors, FLIP_NONE);
+            sprite_sheet_blit_sprite(sprite_sheet, renderer, i * 8, SCREEN_HEIGHT - HUD_HEIGHT + 2, 72, 0, 8, 8,
+                                     dark_health_colors, FLIP_NONE);
     }
 
     i32 stamina_colors[] = {
@@ -56,11 +58,16 @@ void blit_hud(renderer_t* renderer, sprite_sheet_t* sprite_sheet, pawn_t* pawn) 
 
     for (i32 i = 0; i < pawn->stamina_max; i++) {
         if (overshot_stamina) {
-            sprite_sheet_blit_sprite(sprite_sheet, renderer, i * 8, SCREEN_HEIGHT - HUD_HEIGHT + 10, 80, 0, 8, 8, light_stamina_colors, FLIP_NONE);
-        } else if (i < pawn->stamina) {
-            sprite_sheet_blit_sprite(sprite_sheet, renderer, i * 8, SCREEN_HEIGHT - HUD_HEIGHT + 10, 80, 0, 8, 8, stamina_colors, FLIP_NONE);
-        } else {
-            sprite_sheet_blit_sprite(sprite_sheet, renderer, i * 8, SCREEN_HEIGHT - HUD_HEIGHT + 10, 80, 0, 8, 8, dark_stamina_colors, FLIP_NONE);
+            sprite_sheet_blit_sprite(sprite_sheet, renderer, i * 8, SCREEN_HEIGHT - HUD_HEIGHT + 10, 80, 0, 8, 8,
+                                     light_stamina_colors, FLIP_NONE);
+        }
+        else if (i < pawn->stamina) {
+            sprite_sheet_blit_sprite(sprite_sheet, renderer, i * 8, SCREEN_HEIGHT - HUD_HEIGHT + 10, 80, 0, 8, 8,
+                                     stamina_colors, FLIP_NONE);
+        }
+        else {
+            sprite_sheet_blit_sprite(sprite_sheet, renderer, i * 8, SCREEN_HEIGHT - HUD_HEIGHT + 10, 80, 0, 8, 8,
+                                     dark_stamina_colors, FLIP_NONE);
         }
     }
 }

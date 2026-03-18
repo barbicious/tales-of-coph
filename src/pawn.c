@@ -10,6 +10,9 @@
 #include "state.h"
 #include "hud.h"
 
+#define MISC_SPRITE_WIDTH 16
+#define MISC_SPRITE_HEIGHT 16
+
 #define PAWN_WIDTH 16
 #define PAWN_HEIGHT 16
 
@@ -27,6 +30,9 @@ i32 swing_ticks_left = 0;
 i32 stamina_cooldown_ticks_left = 0;
 bool overshot_stamina = false;
 
+static i32 hit_tile_x = 0, hit_tile_y = 0;
+static bool hit_tile = false;
+
 #pragma endregion player_globals
 
 void pawn_init(pawn_t* pawn, pawn_type_e pawn_type, i32 x, i32 y) {
@@ -36,18 +42,19 @@ void pawn_init(pawn_t* pawn, pawn_type_e pawn_type, i32 x, i32 y) {
     pawn->direction = DIRECTION_SOUTH;
 
     switch (pawn->pawn_type) {
-        case PLAYER: {
-            pawn->health = pawn->health_max = 9;
-            pawn->stamina = pawn->stamina_max = 9;
+    case PLAYER: {
+        pawn->health = pawn->health_max = 9;
+        pawn->stamina = pawn->stamina_max = 9;
 
-            i32 colors[4] = {
-                rgb_to_palette(1, 1, 1),
-                rgb_to_palette(4, 4, 4),
-                rgb_to_palette(3, 2, 1),
-                rgb_to_palette(4, 3, 2),
-            };
-            memcpy(pawn->colors, colors, sizeof(colors));
-        } break;
+        i32 colors[4] = {
+            rgb_to_palette(1, 1, 1),
+            rgb_to_palette(4, 4, 4),
+            rgb_to_palette(3, 2, 1),
+            rgb_to_palette(4, 3, 2),
+        };
+        memcpy(pawn->colors, colors, sizeof(colors));
+    }
+    break;
     }
 }
 
@@ -58,103 +65,138 @@ void pawn_tick(pawn_t* pawn, state_t* state) {
     pawn->dx = pawn->dy = 0;
 
     switch (pawn->pawn_type) {
-        case PLAYER: {
-            if (swing_ticks_left > 0) {
-                swing_ticks_left--;
+    case PLAYER: {
+        if (swing_ticks_left > 0) {
+            swing_ticks_left--;
+        }
+
+        if (stamina_cooldown_ticks_left > 0) {
+            stamina_cooldown_ticks_left--;
+
+            if (stamina_cooldown_ticks_left == 0) {
+                overshot_stamina = false;
+            }
+        }
+
+        if (keyboard_key_down(&state->keyboard, SDL_SCANCODE_S) && pawn->y < (ARCADE_HEIGHT - 1) * TILE_HEIGHT) {
+            pawn->dy = 1;
+        }
+
+        if (keyboard_key_down(&state->keyboard, SDL_SCANCODE_W) && pawn->y > 0) {
+            if (pawn->dy != 0) {
+                pawn->dy = 0;
+            }
+            else {
+                pawn->dy = -1;
+            }
+        }
+
+        if (keyboard_key_down(&state->keyboard, SDL_SCANCODE_D) && pawn->x < (ARCADE_WIDTH - 1) * TILE_WIDTH) {
+            pawn->dx = 1;
+        }
+
+        if (keyboard_key_down(&state->keyboard, SDL_SCANCODE_A) && pawn->x > 0) {
+            if (pawn->dx != 0) {
+                pawn->dx = 0;
+            }
+            else {
+                pawn->dx = -1;
+            }
+        }
+
+        if (keyboard_key_down(&state->keyboard, SDL_SCANCODE_SPACE) && swing_ticks_left <= 0 && pawn->stamina > 0) {
+            i32 dx = 0, dy = 0;
+
+            switch (pawn->direction) {
+            case DIRECTION_NORTH: {
+                dx = 0;
+                dy = -1;
+            }
+            break;
+            case DIRECTION_SOUTH: {
+                dx = 0;
+                dy = 1;
+            }
+            break;
+            case DIRECTION_EAST: {
+                dx = -1;
+                dy = 0;
+            }
+            break;
+            case DIRECTION_WEST: {
+                dx = 1;
+                dy = 0;
+            }
+            break;
             }
 
-            if (stamina_cooldown_ticks_left > 0) {
-                stamina_cooldown_ticks_left--;
-
-                if (stamina_cooldown_ticks_left == 0) {
-                    overshot_stamina = false;
-                }
+            if (arcade_attempt_hit_tile(&state->arcade, pawn->tile_x + dx, pawn->tile_y + dy)) {
+                hit_tile_x = pawn->tile_x + dx;
+                hit_tile_y = pawn->tile_y + dy;
+                hit_tile = true;
+            }
+            else {
+                hit_tile = false;
             }
 
-            if (keyboard_key_down(&state->keyboard, SDL_SCANCODE_S) && pawn->y < (ARCADE_HEIGHT - 1) * TILE_HEIGHT) {
-                pawn->dy = 1;
+            swing_ticks_left = SWING_COOLDOWN;
+
+            pawn->stamina--;
+        }
+        else if (keyboard_key_down(&state->keyboard, SDL_SCANCODE_SPACE) && pawn->stamina == 0) {
+            stamina_cooldown_ticks_left = STAMINA_COOLDOWN;
+        }
+
+        if (stamina_cooldown_ticks_left > 0) {
+            if (state->ticks % 5 == 0) {
+                overshot_stamina = !overshot_stamina;
             }
-
-            if (keyboard_key_down(&state->keyboard, SDL_SCANCODE_W) && pawn->y > 0) {
-                if (pawn->dy != 0) {
-                    pawn->dy = 0;
-                } else {
-                    pawn->dy = -1;
-                }
-            }
-
-            if (keyboard_key_down(&state->keyboard, SDL_SCANCODE_D) && pawn->x < (ARCADE_WIDTH - 1) * TILE_WIDTH) {
-                pawn->dx = 1;
-            }
-
-            if (keyboard_key_down(&state->keyboard, SDL_SCANCODE_A) && pawn->x > 0) {
-                if (pawn->dx != 0) {
-                    pawn->dx = 0;
-                } else {
-                    pawn->dx = -1;
-                }
-            }
-
-            if (keyboard_key_down(&state->keyboard, SDL_SCANCODE_SPACE) && swing_ticks_left <= 0 && pawn->stamina > 0) {
-                i32 dx = 0, dy = 0;
-
-                switch (pawn->direction) {
-                    case DIRECTION_NORTH: {
-                        dx = 0;
-                        dy = -1;
-                    } break;
-                    case DIRECTION_SOUTH: {
-                        dx = 0;
-                        dy = 1;
-                    } break;
-                    case DIRECTION_EAST: {
-                        dx = -1;
-                        dy = 0;
-                    } break;
-                    case DIRECTION_WEST: {
-                        dx = 1;
-                        dy = 0;
-                    } break;
-                }
-
-                printf("hit: %d\n", arcade_attempt_hit_tile(&state->arcade, pawn->tile_x + dx, pawn->tile_y + dy));
-
-                swing_ticks_left = SWING_COOLDOWN;
-
-                pawn->stamina--;
-            } else if (keyboard_key_down(&state->keyboard, SDL_SCANCODE_SPACE) && pawn->stamina == 0) {
-                stamina_cooldown_ticks_left = STAMINA_COOLDOWN;
-            }
-
-            if (stamina_cooldown_ticks_left > 0) {
-                if (state->ticks % 5 == 0) {
-                    overshot_stamina = !overshot_stamina;
-                }
-            }
-        } break;
+        }
+    }
+    break;
     }
 
     if (pawn->dx < 0) {
         pawn->direction = DIRECTION_EAST;
-    } else if (pawn->dx > 0) {
+    }
+    else if (pawn->dx > 0) {
         pawn->direction = DIRECTION_WEST;
     }
 
     if (pawn->dy < 0) {
         pawn->direction = DIRECTION_NORTH;
-    } else if (pawn->dy > 0) {
+    }
+    else if (pawn->dy > 0) {
         pawn->direction = DIRECTION_SOUTH;
     }
 
     pawn->x += pawn->dx;
+
+    if (arcade_get_tile_at(&state->arcade, AS_TILE_X(pawn->x), AS_TILE_Y(pawn->y)) == TILE_STONE ||
+        arcade_get_tile_at(&state->arcade, AS_TILE_X(pawn->x + 15), AS_TILE_Y(pawn->y)) == TILE_STONE ||
+        arcade_get_tile_at(&state->arcade, AS_TILE_X(pawn->x), AS_TILE_Y(pawn->y + 15)) == TILE_STONE ||
+        arcade_get_tile_at(&state->arcade, AS_TILE_X(pawn->x + 15), AS_TILE_Y(pawn->y + 15)) == TILE_STONE) {
+        pawn->x -= pawn->dx;
+        pawn->dx = 0;
+    }
+
     pawn->y += pawn->dy;
+
+    if (arcade_get_tile_at(&state->arcade, AS_TILE_X(pawn->x), AS_TILE_Y(pawn->y)) == TILE_STONE ||
+        arcade_get_tile_at(&state->arcade, AS_TILE_X(pawn->x), AS_TILE_Y(pawn->y + 15)) == TILE_STONE ||
+        arcade_get_tile_at(&state->arcade, AS_TILE_X(pawn->x + 15), AS_TILE_Y(pawn->y)) == TILE_STONE ||
+        arcade_get_tile_at(&state->arcade, AS_TILE_X(pawn->x + 15), AS_TILE_Y(pawn->y + 15)) == TILE_STONE) {
+        pawn->y -= pawn->dy;
+        pawn->dy = 0;
+    }
 
     if (pawn->pawn_type == PLAYER) {
         state->camera.tx += pawn->dx;
 
         if (pawn->x <= SCREEN_WIDTH / 2 - HALF_PAWN_WIDTH) {
             state->camera.tx = 0;
-        } else if (pawn->x >= ARCADE_WIDTH * TILE_WIDTH - SCREEN_WIDTH / 2 - HALF_PAWN_WIDTH) {
+        }
+        else if (pawn->x >= ARCADE_WIDTH * TILE_WIDTH - SCREEN_WIDTH / 2 - HALF_PAWN_WIDTH) {
             state->camera.tx = ARCADE_WIDTH * TILE_WIDTH - SCREEN_WIDTH;
         }
 
@@ -162,11 +204,13 @@ void pawn_tick(pawn_t* pawn, state_t* state) {
 
         if (pawn->y <= SCREEN_HEIGHT / 2 - HALF_PAWN_WIDTH) {
             state->camera.ty = 0;
-        } else if (pawn->y >= ARCADE_HEIGHT * TILE_HEIGHT - SCREEN_HEIGHT / 2 + HUD_HEIGHT - HALF_PAWN_WIDTH) {
+        }
+        else if (pawn->y >= ARCADE_HEIGHT * TILE_HEIGHT - SCREEN_HEIGHT / 2 + HUD_HEIGHT - HALF_PAWN_WIDTH) {
             state->camera.ty = ARCADE_HEIGHT * TILE_HEIGHT - SCREEN_HEIGHT + HUD_HEIGHT;
         }
 
-        if (swing_ticks_left <= 0 && pawn->stamina < pawn->stamina_max && state->ticks % 15 == 0 && stamina_cooldown_ticks_left == 0) {
+        if (swing_ticks_left <= 0 && pawn->stamina < pawn->stamina_max && state->ticks % 15 == 0 &&
+            stamina_cooldown_ticks_left == 0) {
             pawn->stamina++;
         }
     }
@@ -174,38 +218,87 @@ void pawn_tick(pawn_t* pawn, state_t* state) {
 
 void pawn_blit(pawn_t* pawn, state_t* state) {
     switch (pawn->pawn_type) {
-        case PLAYER: {
-            static i32 sx = 0, sy = 128, flags = FLIP_NONE;
+    case PLAYER: {
+        static i32 sx = 0, sy = 128, flags = FLIP_NONE;
 
-            if (pawn->dx == 1) {
-                sx = 32 + (pawn->x >> 4 & 1) * 16;
-                flags = FLIP_HORIZONTAL;
-            } else if (pawn->dx == -1) {
-                sx = 32 + (pawn->x >> 4 & 1) * 16;
+        if (pawn->dx == 1) {
+            sx = 32 + (pawn->x >> 4 & 1) * 16;
+            flags = FLIP_HORIZONTAL;
+        }
+        else if (pawn->dx == -1) {
+            sx = 32 + (pawn->x >> 4 & 1) * 16;
+            flags = FLIP_NONE;
+        }
+
+        if (pawn->dy == 1) {
+            sx = 0;
+            if (pawn->y >> 4 & 1) {
                 flags = FLIP_NONE;
             }
+            else {
+                flags = FLIP_HORIZONTAL;
+            }
+        }
+        else if (pawn->dy == -1) {
+            sx = 16;
+            if (pawn->y >> 4 & 1) {
+                flags = FLIP_NONE;
+            }
+            else {
+                flags = FLIP_HORIZONTAL;
+            }
+        }
 
-            if (pawn->dy == 1) {
-                sx = 0;
-                if (pawn->y >> 4 & 1) {
-                    flags = FLIP_NONE;
-                } else {
-                    flags = FLIP_HORIZONTAL;
-                }
-            } else if (pawn->dy == -1) {
-                sx = 16;
-                if (pawn->y >> 4 & 1) {
-                    flags = FLIP_NONE;
-                } else {
-                    flags = FLIP_HORIZONTAL;
-                }
+        sprite_sheet_blit_sprite(&state->sprite_sheet, &state->renderer, pawn->x - state->camera.tx,
+                                 pawn->y - state->camera.ty, sx, sy, PAWN_WIDTH, PAWN_HEIGHT, pawn->colors, flags);
+
+        if (swing_ticks_left > 0) {
+            i32 misc_colors[] = {
+                OPAQUE,
+                OPAQUE,
+                OPAQUE,
+                rgb_to_palette(5, 5, 5),
+            };
+
+
+            switch (pawn->direction) {
+            case DIRECTION_NORTH: {
+                sprite_sheet_blit_sprite(&state->sprite_sheet, &state->renderer, pawn->x - state->camera.tx,
+                                         pawn->y - state->camera.ty - PAWN_HEIGHT, 48, 112, MISC_SPRITE_WIDTH,
+                                         MISC_SPRITE_HEIGHT, misc_colors, FLIP_NONE);
+            }
+            break;
+            case DIRECTION_SOUTH: {
+                sprite_sheet_blit_sprite(&state->sprite_sheet, &state->renderer, pawn->x - state->camera.tx,
+                                         pawn->y - state->camera.ty + PAWN_HEIGHT, 48, 112, MISC_SPRITE_WIDTH,
+                                         MISC_SPRITE_HEIGHT, misc_colors, FLIP_VERTICAL);
+            }
+            break;
+            case DIRECTION_EAST: {
+                sprite_sheet_blit_sprite(&state->sprite_sheet, &state->renderer,
+                                         pawn->x - state->camera.tx - PAWN_WIDTH, pawn->y - state->camera.ty, 64, 112,
+                                         MISC_SPRITE_WIDTH, MISC_SPRITE_HEIGHT, misc_colors, FLIP_HORIZONTAL);
+            }
+            break;
+            case DIRECTION_WEST: {
+                sprite_sheet_blit_sprite(&state->sprite_sheet, &state->renderer,
+                                         pawn->x - state->camera.tx + PAWN_WIDTH, pawn->y - state->camera.ty, 64, 112,
+                                         MISC_SPRITE_WIDTH, MISC_SPRITE_HEIGHT, misc_colors, FLIP_NONE);
+            }
+            break;
             }
 
-            sprite_sheet_blit_sprite(&state->sprite_sheet, &state->renderer, pawn->x - state->camera.tx, pawn->y - state->camera.ty, sx, sy, PAWN_WIDTH, PAWN_HEIGHT, pawn->colors, flags);
-        } break;
+            if (hit_tile) {
+                sprite_sheet_blit_sprite(&state->sprite_sheet, &state->renderer,
+                                         hit_tile_x * TILE_WIDTH - state->camera.tx,
+                                         hit_tile_y * TILE_HEIGHT - state->camera.ty, 32, 112, MISC_SPRITE_WIDTH,
+                                         MISC_SPRITE_HEIGHT, misc_colors, FLIP_NONE);
+            }
+        }
+    }
+    break;
     }
 }
 
 void pawn_destroy(pawn_t* pawn, state_t* state) {
-
 }

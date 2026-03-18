@@ -15,7 +15,8 @@ void tick(state_t* state) {
 
 void blit(state_t* state) {
     arcade_blit(&state->arcade, state);
-    bitmap_font_blit_str(&state->font, &state->sprite_sheet, &state->renderer, string_create("HELLO"), 0, 40, rgb_to_palette(2, 2, 2), OPAQUE, FONT_FANCY);
+    bitmap_font_blit_str(&state->font, &state->sprite_sheet, &state->renderer, string_create("HELLO"), 0, 40,
+                         rgb_to_palette(2, 2, 2), OPAQUE, FONT_FANCY);
 
     blit_hud(&state->renderer, &state->sprite_sheet, &state->arcade.pawn);
 }

@@ -25,6 +25,13 @@ typedef u32 b32;
 #pragma endregion types
 
 
+#pragma region random
+
+#define RAND_RANG(min, max) (min + (rand() % (max - min + 1)))
+
+#pragma endregion random
+
+
 #pragma region string
 
 #include <stddef.h>
@@ -61,6 +68,7 @@ void string_free(string_t* string) {
 
 #pragma endregion string
 
+
 #pragma region list
 
 /*
@@ -77,11 +85,15 @@ typedef struct list {
 
 list_t list_create();
 void list_append(list_t* list, void* item);
+void* list_get(list_t* list, size_t index);
+void list_remove(list_t* list, size_t index);
 void list_destroy(list_t* list);
 
 #ifdef UTILS_IMPL
 
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "item.h"
 
@@ -100,6 +112,25 @@ void list_append(list_t* list, void* item) {
     }
 
     list->items[list->length++] = item;
+}
+
+void* list_get(list_t* list, size_t index) {
+    if (index >= list->length) {
+        printf("Attempted out of bounds access on list.");
+        exit(0);
+    }
+
+    return list->items[index];
+}
+
+void list_remove(list_t* list, size_t index) {
+    if (index >= list->length) {
+        printf("Attempted out of bounds access on list.");
+        exit(0);
+    }
+
+    memmove(list->items, list->items + index, (list->length - index) * sizeof(*list->items));
+    list->length--;
 }
 
 void list_destroy(list_t* list) {
