@@ -20,6 +20,8 @@ typedef struct pawn {
     pawn_type_e pawn_type;
     direction_e direction;
 
+    usize equipped_item;
+
     i32 x, y;
     i32 dx, dy;
 
@@ -30,9 +32,11 @@ typedef struct pawn {
     i32 stamina, stamina_max;
 
     i32 colors[4];
+
+    list_t inventory;
 } pawn_t;
 
 void pawn_init(pawn_t* pawn, pawn_type_e pawn_type, i32 x, i32 y);
 void pawn_tick(pawn_t* pawn, state_t* state);
 void pawn_blit(pawn_t* pawn, state_t* state);
-void pawn_destroy(pawn_t* pawn, state_t* state);
+void pawn_destroy(pawn_t* pawn);

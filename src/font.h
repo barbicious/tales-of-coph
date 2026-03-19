@@ -5,6 +5,10 @@
 #define FONT_NORMAL (1 << 0)
 #define FONT_FANCY (1 << 1)
 
+#define BLIT_NUMBER(n, ox, oy, fg, bg)\
+    char str[3];\
+    snprintf(str, sizeof(str), "%d", n);\
+    bitmap_font_blit_str(&state->font, &state->sprite_sheet, &state->renderer, string_create(str), ox, oy, fg, bg, FONT_NORMAL);
 
 typedef struct renderer renderer_t;
 typedef struct sprite_sheet sprite_sheet_t;

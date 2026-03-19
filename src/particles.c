@@ -3,7 +3,7 @@
 #include "sprite_sheet.h"
 #include "state.h"
 
-#define BASE_PARTICLE_LIFETIME 60
+#define BASE_PARTICLE_LIFETIME 30
 
 #define FRICTION 1
 
@@ -14,8 +14,8 @@ particle_t* particle_create(particle_type_e type, i32 x, i32 y) {
     ret->type = type;
     ret->vx = RAND_RANG(-5, 5);
     ret->vy = RAND_RANG(-3, -5);
-    ret->lifetime = BASE_PARTICLE_LIFETIME;
-    ret->bounces = 5;
+    ret->lifetime = BASE_PARTICLE_LIFETIME + RAND_RANG(5, 10);
+    ret->bounces = RAND_RANG(2, 5);
     return ret;
 }
 
@@ -62,8 +62,8 @@ void particle_tick(particle_t* particle, state_t* state) {
         particle->vy = 0;
 
         if (particle->bounces > 0) {
-            particle->vy = (particle->bounces) * -1;
-            particle->vx = 2 * RAND_RANG(-1, 1);
+            particle->vy = (particle->bounces + 1) * -1;
+            particle->vx = 3 * RAND_RANG(-1, 1);
             particle->bounces--;
         }
     }

@@ -32,10 +32,10 @@ void item_create(item_type_e type, tool_type_e tool) {
         item.sy = 16;
 
         i32 colors[4] = {
+            rgb_to_palette(1, 1, 1),
             rgb_to_palette(2, 2, 2),
             rgb_to_palette(3, 3, 3),
             rgb_to_palette(4, 4, 4),
-            rgb_to_palette(5, 5, 5),
         };
         memcpy(item.colors, colors, sizeof(colors));
     }
@@ -48,4 +48,8 @@ void item_create(item_type_e type, tool_type_e tool) {
 void item_blit(item_t* item, state_t* state, i32 x, i32 y) {
     sprite_sheet_blit_sprite(&state->sprite_sheet, &state->renderer, x, y, item->sx, item->sy, 8, 8, item->colors,
                              FLIP_NONE);
+}
+
+i32 item_get_damage(item_t* item, tile_type_e tile_type) {
+    return 1;
 }

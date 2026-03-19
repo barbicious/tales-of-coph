@@ -9,6 +9,9 @@
 #include "tile.h"
 #include "state.h"
 #include "hud.h"
+#include "item.h"
+#include "item_inst.h"
+#include "item_stack.h"
 
 #define MISC_SPRITE_WIDTH 16
 #define MISC_SPRITE_HEIGHT 16
@@ -40,6 +43,8 @@ void pawn_init(pawn_t* pawn, pawn_type_e pawn_type, i32 x, i32 y) {
     pawn->x = x;
     pawn->y = y;
     pawn->direction = DIRECTION_SOUTH;
+    pawn->equipped_item = 0;
+    pawn->inventory = list_create();
 
     switch (pawn->pawn_type) {
     case PLAYER: {
@@ -53,6 +58,8 @@ void pawn_init(pawn_t* pawn, pawn_type_e pawn_type, i32 x, i32 y) {
             rgb_to_palette(4, 3, 2),
         };
         memcpy(pawn->colors, colors, sizeof(colors));
+
+        list_append(&pawn->inventory, item_stack_create(&items[ITEM_POWER_GLOVE]));
     }
     break;
     }
@@ -130,7 +137,8 @@ void pawn_tick(pawn_t* pawn, state_t* state) {
             break;
             }
 
-            if (arcade_attempt_hit_tile(&state->arcade, pawn->tile_x + dx, pawn->tile_y + dy)) {
+            if (arcade_attempt_hit_tile(&state->arcade, pawn->tile_x + dx, pawn->tile_y + dy,
+                                        pawn->inventory.items[pawn->equipped_item])) {
                 hit_tile_x = pawn->tile_x + dx;
                 hit_tile_y = pawn->tile_y + dy;
                 hit_tile = true;
@@ -214,6 +222,29 @@ void pawn_tick(pawn_t* pawn, state_t* state) {
             pawn->stamina++;
         }
     }
+
+    for (usize i = 0; i < state->arcade.items.length; i++) {
+        item_inst_t* a_item = state->arcade.items.items[i];
+
+        if (RECT_COLLIDES(a_item->x, a_item->y, ITEM_INST_WIDTH, ITEM_INST_HEIGHT, pawn->x, pawn->y, PAWN_WIDTH,
+                          PAWN_HEIGHT)) {
+            for (usize j = 0; j < pawn->inventory.length; j++) {
+                item_stack_t* p_item = pawn->inventory.items[j];
+
+                if (p_item->item->type == a_item->item->type) {
+                    p_item->amount++;
+                    list_remove(&state->arcade.items, i);
+                    goto handled_item;
+                }
+            }
+
+            list_append(&pawn->inventory, item_stack_create(a_item->item));
+            list_remove(&state->arcade.items, i);
+        }
+    }
+
+handled_item:
+
 }
 
 void pawn_blit(pawn_t* pawn, state_t* state) {
@@ -300,5 +331,6 @@ void pawn_blit(pawn_t* pawn, state_t* state) {
     }
 }
 
-void pawn_destroy(pawn_t* pawn, state_t* state) {
+void pawn_destroy(pawn_t* pawn) {
+    list_destroy(&pawn->inventory);
 }

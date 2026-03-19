@@ -8,6 +8,7 @@
 
 #include "state.h"
 #include "item.h"
+#include "item_stack.h"
 
 void tick(state_t* state) {
     arcade_tick(&state->arcade, state);
@@ -15,10 +16,25 @@ void tick(state_t* state) {
 
 void blit(state_t* state) {
     arcade_blit(&state->arcade, state);
-    bitmap_font_blit_str(&state->font, &state->sprite_sheet, &state->renderer, string_create("HELLO"), 0, 40,
-                         rgb_to_palette(2, 2, 2), OPAQUE, FONT_FANCY);
-
     blit_hud(&state->renderer, &state->sprite_sheet, &state->arcade.pawn);
+
+    sprite_sheet_blit_text_frame(&state->sprite_sheet, &state->renderer, &state->font, 0, 0, 0, 14,
+                                     rgb_to_palette(5, 3, 0), rgb_to_palette(3, 2, 1), FLIP_NONE,
+                                     string_create("INVENTORY"));
+
+    /* Inventory blitting code, semantic compression and sutff. */
+    for (usize i = 0; i < state->arcade.pawn.inventory.length; i++) {
+        item_stack_t* item = state->arcade.pawn.inventory.items[i];
+
+        if (i == state->arcade.pawn.equipped_item) {
+            bitmap_font_blit_char(&state->font, &state->sprite_sheet, &state->renderer, '>', 8, i * 8 + 16);
+            item_blit(item->item, state, 16, i * 8 + 16);
+            BLIT_NUMBER(item->amount, 24, i * 8 + 16, rgb_to_palette(5, 3, 0), rgb_to_palette(3, 2, 1));
+        } else {
+            item_blit(item->item, state, 8, i * 8 + 16);
+            BLIT_NUMBER(item->amount, 16, i * 8 + 16, rgb_to_palette(5, 3, 0), rgb_to_palette(3, 2, 1));
+        }
+    }
 }
 
 /* PROPIERTYARY JINGOBIT MAIN!!!! @author barbicious GNU 67 LICENSCE!!!! */

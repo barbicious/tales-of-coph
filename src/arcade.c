@@ -12,6 +12,13 @@
 #define TILE_HEALTH 3
 #define TILE_DATA_UNINITIALIZED (-1)
 
+#define CREATE_DAMAGE_PARTICLE(n)\
+    char str[3];\
+    snprintf(str, sizeof(str), "%d", n);\
+    particle_t* particle = particle_create(PARTICLE_TYPE_DAMAGE_TEXT, x * TILE_WIDTH, y * TILE_HEIGHT);\
+    particle_set_text(particle, str);\
+    list_append(&arcade->particles, particle);
+
 void arcade_init(arcade_t* arcade) {
     /* Init Items */
     item_create(ITEM_POWER_GLOVE, TOOL_OMNI);
@@ -80,11 +87,6 @@ void arcade_tick(arcade_t* arcade, state_t* state) {
         particle_t* particle = list_get(&arcade->particles, i);
 
         particle_tick(particle, state);
-    }
-
-    for (int i = 0; i < arcade->particles.length; i++) {
-        particle_t* particle = list_get(&arcade->particles, i);
-
         if (particle->lifetime <= 0) {
             list_remove(&arcade->particles, i);
         }
@@ -99,22 +101,28 @@ tile_type_e arcade_get_tile_at(const arcade_t* arcade, const i32 x, const i32 y)
     return arcade->tiles[y * ARCADE_WIDTH + x];
 }
 
-bool arcade_attempt_hit_tile(arcade_t* arcade, const i32 x, const i32 y) {
-    if (arcade_get_tile_at(arcade, x, y) != TILE_STONE && arcade_get_tile_at(arcade, x, y) != TILE_GRASS) {
+bool arcade_attempt_hit_tile(arcade_t* arcade, const i32 x, const i32 y, item_t* item) {
+    if (item->tool == TOOL_NONE) {
         return false;
     }
+
+    tile_type_e tile = arcade_get_tile_at(arcade, x, y);
+
+    if (tile != TILE_STONE && tile != TILE_GRASS) {
+        return false;
+    }
+
+    i32 dmg = 1;
 
     auto data = &arcade->data[y * ARCADE_WIDTH + x];
 
     if (*data == TILE_DATA_UNINITIALIZED) {
         *data = TILE_HEALTH;
+
+        *data -= dmg;
     }
     else if (*data > 1) {
-        *data -= 1;
-
-        particle_t* particle = particle_create(PARTICLE_TYPE_DAMAGE_TEXT, x * TILE_WIDTH, y * TILE_HEIGHT);
-        particle_set_text(particle, "1");
-        list_append(&arcade->particles, particle);
+        *data -= dmg;
     }
     else {
         switch (arcade->tiles[y * ARCADE_WIDTH + x]) {
@@ -136,10 +144,13 @@ bool arcade_attempt_hit_tile(arcade_t* arcade, const i32 x, const i32 y) {
         arcade->tiles[y * ARCADE_WIDTH + x] = TILE_DIRT;
     }
 
+    CREATE_DAMAGE_PARTICLE(dmg);
+
     return true;
 }
 
 void arcade_destroy(arcade_t* arcade) {
     list_destroy(&arcade->items);
+    pawn_destroy(&arcade->pawn);
 }
 

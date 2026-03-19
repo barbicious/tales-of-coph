@@ -4,6 +4,7 @@
 #include <stdio.h>
 
 #define STB_IMAGE_IMPLEMENTATION
+#include "font.h"
 #include "renderer.h"
 #include "stb_image.h"
 
@@ -112,6 +113,53 @@ void sprite_sheet_blit_sprite(sprite_sheet_t* sprite_sheet, renderer_t* renderer
             }
         }
     }
+}
+
+void sprite_sheet_blit_frame(sprite_sheet_t* sprite_sheet, renderer_t* renderer, i32 ox, i32 oy,
+                             u32 width, u32 height, u32 flags) {
+    for (usize frame_y = 0; frame_y < height; frame_y++) {
+        for (usize frame_x = 0; frame_x < width; frame_x++) {
+            i32 sx = 0, sy = 208;
+
+            if (frame_x == 0) {
+                sx = 0;
+            }
+            else if (frame_x == width - 1) {
+                sx = 16;
+            }
+            else {
+                sx = 8;
+            }
+
+            if (frame_y == 0) {
+                sy += 0;
+            }
+            else if (frame_y == height - 1) {
+                sy += 16;
+            }
+            else {
+                sy += 8;
+            }
+
+            i32 colors[] = {
+                OPAQUE,
+                rgb_to_palette(2, 2, 2),
+                rgb_to_palette(3, 2, 1),
+                rgb_to_palette(4, 4, 4),
+            };
+
+            sprite_sheet_blit_sprite(sprite_sheet, renderer, ox + frame_x * 8, oy + frame_y * 8, sx, sy, 8, 8, colors,
+                                     flags);
+        }
+    }
+}
+
+void sprite_sheet_blit_text_frame(sprite_sheet_t* sprite_sheet, renderer_t* renderer, bitmap_font_t* bitmap_font,
+                                  i32 ox, i32 oy, u32 width,
+                                  u32 height, i32 fg, i32 bg, u32 flags, string_t text) {
+    sprite_sheet_blit_frame(sprite_sheet, renderer, ox, oy, text.length + 2 + width, height, flags);
+
+    bitmap_font_blit_str(bitmap_font, sprite_sheet, renderer, text, ox + 8, 0, fg, bg, FONT_NORMAL);
 }
 
 void sprite_sheet_destroy(sprite_sheet_t* sprite_sheet) {

@@ -21,15 +21,25 @@ typedef double f64;
 typedef u8 b8;
 typedef u32 b32;
 
+typedef size_t usize;
+typedef ssize_t isize;
 
 #pragma endregion types
 
 
-#pragma region random
+#pragma region usefulmacros
+
+/* compilers, debuggers, past me, and C++ purists beware */
 
 #define RAND_RANG(min, max) (min + (rand() % (max - min + 1)))
-
-#pragma endregion random
+#define RECT_COLLIDES(x1, y1, w1, h1, x2, y2, w2, h2)\
+    (!!(\
+    ((x1)  < ((x2) + (w2))) && \
+    (((x1) + (w1)) > (x2))  && \
+    ((y1)  < ((y2) + (h2))) && \
+    (((y1) + (h1)) > (y2))     \
+    ))
+#pragma endregion usefulmacros
 
 
 #pragma region string
@@ -129,7 +139,11 @@ void list_remove(list_t* list, size_t index) {
         exit(0);
     }
 
-    memmove(list->items, list->items + index, (list->length - index) * sizeof(*list->items));
+    memmove(
+        list->items + index,
+        list->items + index + 1,
+        (list->length - index - 1) * sizeof(*list->items)
+    );
     list->length--;
 }
 
