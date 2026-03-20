@@ -13,6 +13,8 @@ typedef struct state {
 
     u32 ticks, frames;
 
+    u32 menu;
+
     void (*tick)(struct state* state);
     void (*blit)(struct state* state);
 

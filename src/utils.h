@@ -2,6 +2,7 @@
 
 #pragma region types
 
+#include <math.h>
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -24,6 +25,11 @@ typedef u32 b32;
 typedef size_t usize;
 typedef ssize_t isize;
 
+// No _t suffix cuz it is basically an integral type any ways
+typedef struct vector2 {
+    f32 x, y;
+} v2;
+
 #pragma endregion types
 
 
@@ -32,6 +38,7 @@ typedef ssize_t isize;
 /* compilers, debuggers, past me, and C++ purists beware */
 
 #define RAND_RANG(min, max) (min + (rand() % (max - min + 1)))
+
 #define RECT_COLLIDES(x1, y1, w1, h1, x2, y2, w2, h2)\
     (!!(\
     ((x1)  < ((x2) + (w2))) && \
@@ -39,8 +46,24 @@ typedef ssize_t isize;
     ((y1)  < ((y2) + (h2))) && \
     (((y1) + (h1)) > (y2))     \
     ))
+
 #pragma endregion usefulmacros
 
+
+#pragma region usefulfunctions
+
+// Interpolates between two numbers based on the weight
+f32 lerp(f32 num_one, f32 num_two, f32 weight);
+
+#ifdef UTILS_IMPL
+
+f32 lerp(f32 num_one, f32 num_two, f32 weight) {
+    return (num_two - num_one) * (3.0f - weight * 2.0f) * weight * weight + num_one;
+}
+
+#endif
+
+#pragma endregion usefulfunctions
 
 #pragma region string
 
@@ -160,3 +183,79 @@ void list_destroy(list_t* list) {
 #endif
 
 #pragma endregion list
+
+#pragma region noise
+
+// Computes a psuedorandom gradient value for a given point
+v2 random_gradient(i32 x, i32 y);
+// Determines the distance/dot product between the corner normal, and the provided coordinate
+f32 dot_grid_gradient(i32 x, i32 y, f32 fx, f32 fy);
+// 2D Perlin noise function, returns a value 0-1
+f32 perlin(f32 x, f32 y);
+
+#ifdef UTILS_IMPL
+
+#include <math.h>
+
+v2 random_gradient(i32 x, i32 y) {
+    unsigned w = 8 * sizeof(unsigned);
+    unsigned s = w / 2;
+    unsigned a = x, b = y;
+    a *= 3284157443;
+
+    b ^= a << s | a >> w - s;
+    b *= 1911520717;
+
+    a ^= b << s | b >> w - s;
+    a *= 2048419325;
+
+    f32 random = a * (3.14159265 / ~(~0u >> 1));
+
+    // Create vector from the angle
+    v2 vector2 = {
+        .x = sin(random),
+        .y = cos(random),
+    };
+
+    return vector2;
+}
+
+f32 dot_grid_gradient(i32 x, i32 y, f32 fx, f32 fy) {
+    v2 gradient = random_gradient(x, y);
+
+    // Get the distance vector
+    f32 dx = fx - (f32)x;
+    f32 dy = fy - (f32)y;
+
+    // Dot product
+    return (dx * gradient.x + dy * gradient.y);
+}
+
+f32 perlin(f32 x, f32 y) {
+    // Get cell coordinate for each corner
+    i32 x0 = (i32)x;
+    i32 y0 = (i32)y;
+    i32 x1 = x0 + 1;
+    i32 y1 = y0 + 1;
+
+    // Lerp weights
+    f32 lx = x - (f32)x0;
+    f32 ly = y - (f32)y0;
+
+    // Compute and lerp top two corners
+    f32 n0 = dot_grid_gradient(x0, y0, x, y);
+    f32 n1 = dot_grid_gradient(x1, y0, x, y);
+    f32 ix0 = lerp(n0, n1, lx);
+
+    // Compute and lerp bottom two corners
+    n0 = dot_grid_gradient(x0, y1, x, y);
+    n1 = dot_grid_gradient(x1, y1, x, y);
+    f32 ix1 = lerp(n0, n1, lx);
+
+    // Lerp previous two values with y weight
+    return lerp(ix0, ix1, ly);
+}
+
+#endif
+
+#pragma endregion noise

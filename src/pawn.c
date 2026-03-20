@@ -12,6 +12,7 @@
 #include "item.h"
 #include "item_inst.h"
 #include "item_stack.h"
+#include "menu.h"
 
 #define MISC_SPRITE_WIDTH 16
 #define MISC_SPRITE_HEIGHT 16
@@ -111,7 +112,7 @@ void pawn_tick(pawn_t* pawn, state_t* state) {
             }
         }
 
-        if (keyboard_key_down(&state->keyboard, SDL_SCANCODE_SPACE) && swing_ticks_left <= 0 && pawn->stamina > 0) {
+        if (keyboard_key_down(&state->keyboard, SDL_SCANCODE_SPACE) && ((item_stack_t* )list_get(&pawn->inventory, pawn->equipped_item))->item->tool != TOOL_NONE && swing_ticks_left <= 0 && pawn->stamina > 0) {
             i32 dx = 0, dy = 0;
 
             switch (pawn->direction) {
@@ -153,6 +154,19 @@ void pawn_tick(pawn_t* pawn, state_t* state) {
         }
         else if (keyboard_key_down(&state->keyboard, SDL_SCANCODE_SPACE) && pawn->stamina == 0) {
             stamina_cooldown_ticks_left = STAMINA_COOLDOWN;
+        }
+
+        if (keyboard_key_pressed(&state->keyboard, SDL_SCANCODE_E)) {
+            state->menu ^= SDL_SCANCODE_MENU;
+        }
+
+        if ((state->menu & MENU_INVENTORY) == MENU_INVENTORY) {
+            if (keyboard_key_down(&state->keyboard, SDL_SCANCODE_DOWN) && pawn->equipped_item < pawn->inventory.length - 1) {
+                pawn->equipped_item++;
+            }
+            else if (keyboard_key_down(&state->keyboard, SDL_SCANCODE_UP) && pawn->equipped_item > 0) {
+                pawn->equipped_item--;
+            }
         }
 
         if (stamina_cooldown_ticks_left > 0) {
@@ -280,8 +294,24 @@ void pawn_blit(pawn_t* pawn, state_t* state) {
             }
         }
 
-        sprite_sheet_blit_sprite(&state->sprite_sheet, &state->renderer, pawn->x - state->camera.tx,
-                                 pawn->y - state->camera.ty, sx, sy, PAWN_WIDTH, PAWN_HEIGHT, pawn->colors, flags);
+        if (arcade_get_tile_at(&state->arcade, pawn->tile_x, pawn->tile_y) == TILE_WATER) {
+            i32 swimming_colors[] = {
+                OPAQUE,
+                OPAQUE,
+                rgb_to_palette(1, 1, 4),
+                rgb_to_palette(2, 2, 5),
+            };
+
+            sprite_sheet_blit_sprite(&state->sprite_sheet, &state->renderer, pawn->x - state->camera.tx,
+             pawn->y - state->camera.ty, 0 + (state->ticks >> 5 & 1) * 16, 112, PAWN_WIDTH, PAWN_HEIGHT, swimming_colors, flags);
+
+            sprite_sheet_blit_sprite(&state->sprite_sheet, &state->renderer, pawn->x - state->camera.tx,
+                         pawn->y - state->camera.ty, sx, sy, PAWN_WIDTH, PAWN_HEIGHT / 2, pawn->colors, flags);
+        }
+        else {
+            sprite_sheet_blit_sprite(&state->sprite_sheet, &state->renderer, pawn->x - state->camera.tx,
+                                     pawn->y - state->camera.ty, sx, sy, PAWN_WIDTH, PAWN_HEIGHT, pawn->colors, flags);
+        }
 
         if (swing_ticks_left > 0) {
             i32 misc_colors[] = {

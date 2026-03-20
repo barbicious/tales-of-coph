@@ -80,12 +80,12 @@ void sprite_sheet_blit_sprite(sprite_sheet_t* sprite_sheet, renderer_t* renderer
                     continue;
                 }
 
-                if (SPRITE_SHEET_PIXEL(width - x + sx, sy + y) == OPAQUE || colors[SPRITE_SHEET_PIXEL(
-                    width - x + sx, y + sy)] == OPAQUE) {
+                if (SPRITE_SHEET_PIXEL(width - x + sx - 1, sy + y) == OPAQUE || colors[SPRITE_SHEET_PIXEL(
+                    width - x + sx - 1, y + sy)] == OPAQUE) {
                     continue;
                 }
 
-                renderer_set_pixel(renderer, px, py, colors[SPRITE_SHEET_PIXEL(width - x + sx, y + sy)]);
+                renderer_set_pixel(renderer, px, py, colors[SPRITE_SHEET_PIXEL(width - x + sx - 1, y + sy)]);
             }
         }
     }
@@ -104,12 +104,12 @@ void sprite_sheet_blit_sprite(sprite_sheet_t* sprite_sheet, renderer_t* renderer
                     continue;
                 }
 
-                if (SPRITE_SHEET_PIXEL(x + sx, height - y + sy) == OPAQUE || colors[SPRITE_SHEET_PIXEL(
-                    x + sx, height - y + sy)] == OPAQUE) {
+                if (SPRITE_SHEET_PIXEL(x + sx, height - y + sy - 1) == OPAQUE || colors[SPRITE_SHEET_PIXEL(
+                    x + sx, height - y + sy - 1)] == OPAQUE) {
                     continue;
                 }
 
-                renderer_set_pixel(renderer, px, py, colors[SPRITE_SHEET_PIXEL(x + sx, height - y + sy)]);
+                renderer_set_pixel(renderer, px, py, colors[SPRITE_SHEET_PIXEL(x + sx, height - y + sy - 1)]);
             }
         }
     }

@@ -6,7 +6,7 @@
 #define FONT_FANCY (1 << 1)
 
 #define BLIT_NUMBER(n, ox, oy, fg, bg)\
-    char str[3];\
+    char str[4];\
     snprintf(str, sizeof(str), "%d", n);\
     bitmap_font_blit_str(&state->font, &state->sprite_sheet, &state->renderer, string_create(str), ox, oy, fg, bg, FONT_NORMAL);
 

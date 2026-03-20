@@ -34,6 +34,8 @@ add_executable(talesofcoph src/main.c
         src/particles.h
         src/item_stack.c
         src/item_stack.h
+        src/menu.c
+        src/menu.h
 )
 
 target_link_libraries(talesofcoph PRIVATE SDL2 m)

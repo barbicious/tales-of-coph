@@ -35,14 +35,16 @@ void arcade_init(arcade_t* arcade) {
 
     for (i32 y = 0; y < ARCADE_HEIGHT; y++) {
         for (i32 x = 0; x < ARCADE_WIDTH; x++) {
-            if (rand() > RAND_MAX / 3) {
+            f32 val = perlin((f32)x / 8, (f32)y / 8);
+
+            if (val > 0.2f) {
+                arcade->tiles[y * ARCADE_WIDTH + x] = TILE_STONE;
+            }
+            else if (val > -0.2f) {
                 arcade->tiles[y * ARCADE_WIDTH + x] = TILE_GRASS;
             }
-            else if (rand() > RAND_MAX / 2) {
-                arcade->tiles[y * ARCADE_WIDTH + x] = TILE_WATER;
-            }
             else {
-                arcade->tiles[y * ARCADE_WIDTH + x] = TILE_STONE;
+                arcade->tiles[y * ARCADE_WIDTH + x] = TILE_WATER;
             }
         }
     }

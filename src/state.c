@@ -4,6 +4,8 @@
 
 #include <SDL2/SDL.h>
 
+#include "menu.h"
+
 #define NS_PER_TICK (1.0 / 60.0)
 
 void state_init(state_t* state, void (*tick)(struct state* state), void (*blit)(struct state* state)) {
@@ -39,6 +41,8 @@ void state_init(state_t* state, void (*tick)(struct state* state), void (*blit)(
     keyboard_t keyboard = {0};
     keyboard_init(&keyboard);
     state->keyboard = keyboard;
+
+    state->menu = MENU_INVENTORY;
 }
 
 void state_destroy(state_t* state) {
