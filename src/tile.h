@@ -27,6 +27,8 @@ typedef enum tile_type {
     TILE_WATER,
     TILE_STONE,
     TILE_DIRT,
+    TILE_FLOWER,
+    TILE_TREE,
 } tile_type_e;
 
 

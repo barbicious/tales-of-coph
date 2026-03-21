@@ -194,20 +194,20 @@ void pawn_tick(pawn_t* pawn, state_t* state) {
 
     pawn->x += pawn->dx;
 
-    if (arcade_get_tile_at(&state->arcade, AS_TILE_X(pawn->x), AS_TILE_Y(pawn->y)) == TILE_STONE ||
-        arcade_get_tile_at(&state->arcade, AS_TILE_X(pawn->x + 15), AS_TILE_Y(pawn->y)) == TILE_STONE ||
-        arcade_get_tile_at(&state->arcade, AS_TILE_X(pawn->x), AS_TILE_Y(pawn->y + 15)) == TILE_STONE ||
-        arcade_get_tile_at(&state->arcade, AS_TILE_X(pawn->x + 15), AS_TILE_Y(pawn->y + 15)) == TILE_STONE) {
+    if (arcade_tile_collides(&state->arcade, AS_TILE_X(pawn->x), AS_TILE_Y(pawn->y)) ||
+        arcade_tile_collides(&state->arcade, AS_TILE_X(pawn->x + 15), AS_TILE_Y(pawn->y)) ||
+        arcade_tile_collides(&state->arcade, AS_TILE_X(pawn->x), AS_TILE_Y(pawn->y + 15)) ||
+        arcade_tile_collides(&state->arcade, AS_TILE_X(pawn->x + 15), AS_TILE_Y(pawn->y + 15))) {
         pawn->x -= pawn->dx;
         pawn->dx = 0;
     }
 
     pawn->y += pawn->dy;
 
-    if (arcade_get_tile_at(&state->arcade, AS_TILE_X(pawn->x), AS_TILE_Y(pawn->y)) == TILE_STONE ||
-        arcade_get_tile_at(&state->arcade, AS_TILE_X(pawn->x), AS_TILE_Y(pawn->y + 15)) == TILE_STONE ||
-        arcade_get_tile_at(&state->arcade, AS_TILE_X(pawn->x + 15), AS_TILE_Y(pawn->y)) == TILE_STONE ||
-        arcade_get_tile_at(&state->arcade, AS_TILE_X(pawn->x + 15), AS_TILE_Y(pawn->y + 15)) == TILE_STONE) {
+    if (arcade_tile_collides(&state->arcade, AS_TILE_X(pawn->x), AS_TILE_Y(pawn->y)) ||
+        arcade_tile_collides(&state->arcade, AS_TILE_X(pawn->x), AS_TILE_Y(pawn->y + 15)) ||
+        arcade_tile_collides(&state->arcade, AS_TILE_X(pawn->x + 15), AS_TILE_Y(pawn->y)) ||
+        arcade_tile_collides(&state->arcade, AS_TILE_X(pawn->x + 15), AS_TILE_Y(pawn->y + 15))) {
         pawn->y -= pawn->dy;
         pawn->dy = 0;
     }
@@ -232,9 +232,13 @@ void pawn_tick(pawn_t* pawn, state_t* state) {
         }
 
         if (swing_ticks_left <= 0 && pawn->stamina < pawn->stamina_max && state->ticks % 15 == 0 &&
-            stamina_cooldown_ticks_left == 0) {
+            stamina_cooldown_ticks_left == 0 && arcade_get_tile_at(&state->arcade, pawn->tile_x, pawn->tile_y) != TILE_WATER) {
             pawn->stamina++;
         }
+    }
+
+    if (arcade_get_tile_at(&state->arcade, pawn->tile_x, pawn->tile_y) == TILE_WATER && pawn->stamina > 0 && state->ticks % 30 == 0) {
+        pawn->stamina--;
     }
 
     for (usize i = 0; i < state->arcade.items.length; i++) {

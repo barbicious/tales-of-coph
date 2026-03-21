@@ -29,5 +29,6 @@ void arcade_init(arcade_t* arcade);
 void arcade_blit(arcade_t* arcade, state_t* state);
 void arcade_tick(arcade_t* arcade, state_t* state);
 tile_type_e arcade_get_tile_at(const arcade_t* arcade, i32 x, i32 y);
+bool arcade_tile_collides(const arcade_t* arcade, i32 x, i32 y);
 bool arcade_attempt_hit_tile(arcade_t* arcade, i32 x, i32 y, item_t* item);
 void arcade_destroy(arcade_t* arcade);

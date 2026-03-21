@@ -29,19 +29,32 @@ void arcade_init(arcade_t* arcade) {
     tile_create(TILE_WATER);
     tile_create(TILE_STONE);
     tile_create(TILE_DIRT);
+    tile_create(TILE_FLOWER);
+    tile_create(TILE_TREE);
 
     /* Generate Arcade */
     arcade->level = LEVEL_OVERWORLD;
 
     for (i32 y = 0; y < ARCADE_HEIGHT; y++) {
         for (i32 x = 0; x < ARCADE_WIDTH; x++) {
+            f32 flower_val = perlin((f32)x / 7 + 500, (f32)y / 7 + 2500);
+            f32 tree_val = perlin((f32)x / 9 + 3000, (f32)y / 9 + 1000);
+
             f32 val = perlin((f32)x / 8, (f32)y / 8);
 
             if (val > 0.2f) {
                 arcade->tiles[y * ARCADE_WIDTH + x] = TILE_STONE;
             }
             else if (val > -0.2f) {
-                arcade->tiles[y * ARCADE_WIDTH + x] = TILE_GRASS;
+                if (tree_val > 0.3f) {
+                    arcade->tiles[y * ARCADE_WIDTH + x] = TILE_TREE;
+                }
+                else if (flower_val > 0.2f) {
+                    arcade->tiles[y * ARCADE_WIDTH + x] = TILE_FLOWER;
+                }
+                else {
+                    arcade->tiles[y * ARCADE_WIDTH + x] = TILE_GRASS;
+                }
             }
             else {
                 arcade->tiles[y * ARCADE_WIDTH + x] = TILE_WATER;
@@ -101,6 +114,10 @@ tile_type_e arcade_get_tile_at(const arcade_t* arcade, const i32 x, const i32 y)
     }
 
     return arcade->tiles[y * ARCADE_WIDTH + x];
+}
+
+bool arcade_tile_collides(const arcade_t* arcade, i32 x, i32 y) {
+    return arcade_get_tile_at(arcade, x, y) == TILE_TREE || arcade_get_tile_at(arcade, x, y) == TILE_STONE;
 }
 
 bool arcade_attempt_hit_tile(arcade_t* arcade, const i32 x, const i32 y, item_t* item) {
