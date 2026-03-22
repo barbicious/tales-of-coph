@@ -123,8 +123,8 @@ void flower_tile_blit(tile_t* tile, state_t* state, i32 x, i32 y) {
 
     if (y >> 3 & 1) {
         sprite_sheet_blit_sprite(&state->sprite_sheet, &state->renderer, MUL_TILE_W(x), MUL_TILE_H(y),
-                             24 + ((x + 1) & 1) * TILE_SPRITE_WIDTH, ((y - 3) & 1) * TILE_SPRITE_HEIGHT + 16,
-                             TILE_SPRITE_WIDTH, TILE_SPRITE_HEIGHT, tile->colors, FLIP_NONE);
+                                 24 + ((x + 1) & 1) * TILE_SPRITE_WIDTH, ((y - 3) & 1) * TILE_SPRITE_HEIGHT + 16,
+                                 TILE_SPRITE_WIDTH, TILE_SPRITE_HEIGHT, tile->colors, FLIP_NONE);
     }
 
     if (x >> 2 & 1) {
@@ -293,7 +293,7 @@ void tree_tile_blit(tile_t* tile, state_t* state, i32 x, i32 y) {
     }
     else {
         sprite_sheet_blit_sprite(&state->sprite_sheet, &state->renderer, MUL_TILE_W(x), MUL_TILE_H(y) + 8, 40, 24,
-                         TILE_SPRITE_WIDTH, TILE_SPRITE_HEIGHT, tile->colors, FLIP_NONE);
+                                 TILE_SPRITE_WIDTH, TILE_SPRITE_HEIGHT, tile->colors, FLIP_NONE);
     }
 
     if (d && r && dr) {

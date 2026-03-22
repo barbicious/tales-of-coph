@@ -1,6 +1,9 @@
 #pragma once
 #include "utils.h"
 
+#define PAWN_WIDTH 16
+#define PAWN_HEIGHT 16
+
 extern i32 swing_ticks_left;
 extern i32 stamina_cooldown_ticks_left;
 extern bool overshot_stamina;
@@ -12,7 +15,8 @@ typedef enum direction {
 } direction_e;
 
 typedef enum pawn_type {
-    PLAYER,
+    PAWN_PLAYER,
+    PAWN_CHEST,
 } pawn_type_e;
 
 

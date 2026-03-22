@@ -17,9 +17,6 @@
 #define MISC_SPRITE_WIDTH 16
 #define MISC_SPRITE_HEIGHT 16
 
-#define PAWN_WIDTH 16
-#define PAWN_HEIGHT 16
-
 #define HALF_PAWN_WIDTH 8
 #define HALF_PAWN_HEIGHT 8
 
@@ -45,10 +42,11 @@ void pawn_init(pawn_t* pawn, pawn_type_e pawn_type, i32 x, i32 y) {
     pawn->y = y;
     pawn->direction = DIRECTION_SOUTH;
     pawn->equipped_item = 0;
-    pawn->inventory = list_create();
 
     switch (pawn->pawn_type) {
-    case PLAYER: {
+    case PAWN_PLAYER: {
+        pawn->inventory = list_create();
+
         pawn->health = pawn->health_max = 9;
         pawn->stamina = pawn->stamina_max = 9;
 
@@ -63,6 +61,18 @@ void pawn_init(pawn_t* pawn, pawn_type_e pawn_type, i32 x, i32 y) {
         list_append(&pawn->inventory, item_stack_create(&items[ITEM_POWER_GLOVE]));
     }
     break;
+    case PAWN_CHEST: {
+        pawn->health = pawn->health_max = 3;
+
+        i32 colors[4] = {
+            rgb_to_palette(1, 1, 1),
+            rgb_to_palette(3, 1, 0),
+            rgb_to_palette(4, 2, 1),
+            rgb_to_palette(5, 3, 2),
+        };
+        memcpy(pawn->colors, colors, sizeof(colors));
+    }
+    break;
     }
 }
 
@@ -73,7 +83,7 @@ void pawn_tick(pawn_t* pawn, state_t* state) {
     pawn->dx = pawn->dy = 0;
 
     switch (pawn->pawn_type) {
-    case PLAYER: {
+    case PAWN_PLAYER: {
         if (swing_ticks_left > 0) {
             swing_ticks_left--;
         }
@@ -112,7 +122,10 @@ void pawn_tick(pawn_t* pawn, state_t* state) {
             }
         }
 
-        if (keyboard_key_down(&state->keyboard, SDL_SCANCODE_SPACE) && ((item_stack_t* )list_get(&pawn->inventory, pawn->equipped_item))->item->tool != TOOL_NONE && swing_ticks_left <= 0 && pawn->stamina > 0) {
+        if (keyboard_key_down(&state->keyboard, SDL_SCANCODE_SPACE) &&
+            ((item_stack_t*)list_get(&pawn->inventory, pawn->equipped_item))->item->tool != TOOL_NONE &&
+            swing_ticks_left <= 0 &&
+            pawn->stamina > 0) {
             i32 dx = 0, dy = 0;
 
             switch (pawn->direction) {
@@ -120,22 +133,22 @@ void pawn_tick(pawn_t* pawn, state_t* state) {
                 dx = 0;
                 dy = -1;
             }
-            break;
+                break;
             case DIRECTION_SOUTH: {
                 dx = 0;
                 dy = 1;
             }
-            break;
+                break;
             case DIRECTION_EAST: {
                 dx = -1;
                 dy = 0;
             }
-            break;
+                break;
             case DIRECTION_WEST: {
                 dx = 1;
                 dy = 0;
             }
-            break;
+                break;
             }
 
             if (arcade_attempt_hit_tile(&state->arcade, pawn->tile_x + dx, pawn->tile_y + dy,
@@ -144,6 +157,7 @@ void pawn_tick(pawn_t* pawn, state_t* state) {
                 hit_tile_y = pawn->tile_y + dy;
                 hit_tile = true;
             }
+
             else {
                 hit_tile = false;
             }
@@ -151,7 +165,7 @@ void pawn_tick(pawn_t* pawn, state_t* state) {
             swing_ticks_left = SWING_COOLDOWN;
 
             pawn->stamina--;
-        }
+            }
         else if (keyboard_key_down(&state->keyboard, SDL_SCANCODE_SPACE) && pawn->stamina == 0) {
             stamina_cooldown_ticks_left = STAMINA_COOLDOWN;
         }
@@ -161,9 +175,10 @@ void pawn_tick(pawn_t* pawn, state_t* state) {
         }
 
         if ((state->menu & MENU_INVENTORY) == MENU_INVENTORY) {
-            if (keyboard_key_down(&state->keyboard, SDL_SCANCODE_DOWN) && pawn->equipped_item < pawn->inventory.length - 1) {
+            if (keyboard_key_down(&state->keyboard, SDL_SCANCODE_DOWN) && pawn->equipped_item < pawn->inventory.length -
+                1) {
                 pawn->equipped_item++;
-            }
+                }
             else if (keyboard_key_down(&state->keyboard, SDL_SCANCODE_UP) && pawn->equipped_item > 0) {
                 pawn->equipped_item--;
             }
@@ -175,7 +190,50 @@ void pawn_tick(pawn_t* pawn, state_t* state) {
             }
         }
     }
-    break;
+        break;
+    case PAWN_CHEST: {
+        bool collided = false;
+
+        i32 dx = 0, dy = 0;
+
+        if (RECT_COLLIDES(pawn->x, pawn->y, PAWN_WIDTH, PAWN_HEIGHT, state->arcade.pawn.x - state->arcade.pawn.dx, state->arcade.pawn.y, PAWN_WIDTH, PAWN_HEIGHT)) {
+            collided = true;
+            state->arcade.pawn.y -= state->arcade.pawn.dy;
+
+            dy = state->arcade.pawn.dy;
+
+            state->camera.ty -= dy;
+
+            if (state->arcade.pawn.y <= SCREEN_HEIGHT / 2 - HALF_PAWN_WIDTH) {
+                state->camera.ty = 0;
+            }
+            else if (state->arcade.pawn.y >= ARCADE_HEIGHT * TILE_HEIGHT - SCREEN_HEIGHT / 2 + HUD_HEIGHT - HALF_PAWN_WIDTH) {
+                state->camera.ty = ARCADE_HEIGHT * TILE_HEIGHT - SCREEN_HEIGHT + HUD_HEIGHT;
+            }
+        }
+
+        if (RECT_COLLIDES(pawn->x, pawn->y, PAWN_WIDTH, PAWN_HEIGHT, state->arcade.pawn.x, state->arcade.pawn.y - state->arcade.pawn.dy, PAWN_WIDTH, PAWN_HEIGHT)) {
+            collided = true;
+            state->arcade.pawn.x -= state->arcade.pawn.dx;
+
+            dx = state->arcade.pawn.dx;
+
+            state->camera.tx -= dx;
+
+            if (state->arcade.pawn.x <= SCREEN_WIDTH / 2 - HALF_PAWN_WIDTH) {
+                state->camera.tx = 0;
+            }
+            else if (state->arcade.pawn.x >= ARCADE_WIDTH * TILE_WIDTH - SCREEN_WIDTH / 2 - HALF_PAWN_WIDTH) {
+                state->camera.tx = ARCADE_WIDTH * TILE_WIDTH - SCREEN_WIDTH;
+            }
+        }
+
+        if (collided) {
+            pawn->dx = dx;
+            pawn->dy = dy;
+        }
+    }
+        break;
     }
 
     if (pawn->dx < 0) {
@@ -197,9 +255,9 @@ void pawn_tick(pawn_t* pawn, state_t* state) {
     if (arcade_tile_collides(&state->arcade, AS_TILE_X(pawn->x), AS_TILE_Y(pawn->y)) ||
         arcade_tile_collides(&state->arcade, AS_TILE_X(pawn->x + 15), AS_TILE_Y(pawn->y)) ||
         arcade_tile_collides(&state->arcade, AS_TILE_X(pawn->x), AS_TILE_Y(pawn->y + 15)) ||
-        arcade_tile_collides(&state->arcade, AS_TILE_X(pawn->x + 15), AS_TILE_Y(pawn->y + 15))) {
+        arcade_tile_collides(&state->arcade, AS_TILE_X(pawn->x + 15), AS_TILE_Y(pawn->y + 15)) ||
+        pawn->x < 0 || pawn->x > ARCADE_WIDTH * TILE_WIDTH) {
         pawn->x -= pawn->dx;
-        pawn->dx = 0;
     }
 
     pawn->y += pawn->dy;
@@ -207,12 +265,12 @@ void pawn_tick(pawn_t* pawn, state_t* state) {
     if (arcade_tile_collides(&state->arcade, AS_TILE_X(pawn->x), AS_TILE_Y(pawn->y)) ||
         arcade_tile_collides(&state->arcade, AS_TILE_X(pawn->x), AS_TILE_Y(pawn->y + 15)) ||
         arcade_tile_collides(&state->arcade, AS_TILE_X(pawn->x + 15), AS_TILE_Y(pawn->y)) ||
-        arcade_tile_collides(&state->arcade, AS_TILE_X(pawn->x + 15), AS_TILE_Y(pawn->y + 15))) {
+        arcade_tile_collides(&state->arcade, AS_TILE_X(pawn->x + 15), AS_TILE_Y(pawn->y + 15)) ||
+        pawn->y < 0 || pawn->y > ARCADE_HEIGHT * TILE_WIDTH) {
         pawn->y -= pawn->dy;
-        pawn->dy = 0;
     }
 
-    if (pawn->pawn_type == PLAYER) {
+    if (pawn->pawn_type == PAWN_PLAYER) {
         state->camera.tx += pawn->dx;
 
         if (pawn->x <= SCREEN_WIDTH / 2 - HALF_PAWN_WIDTH) {
@@ -232,12 +290,14 @@ void pawn_tick(pawn_t* pawn, state_t* state) {
         }
 
         if (swing_ticks_left <= 0 && pawn->stamina < pawn->stamina_max && state->ticks % 15 == 0 &&
-            stamina_cooldown_ticks_left == 0 && arcade_get_tile_at(&state->arcade, pawn->tile_x, pawn->tile_y) != TILE_WATER) {
+            stamina_cooldown_ticks_left == 0 && arcade_get_tile_at(&state->arcade, pawn->tile_x, pawn->tile_y) !=
+            TILE_WATER) {
             pawn->stamina++;
         }
     }
 
-    if (arcade_get_tile_at(&state->arcade, pawn->tile_x, pawn->tile_y) == TILE_WATER && pawn->stamina > 0 && state->ticks % 30 == 0) {
+    if (arcade_get_tile_at(&state->arcade, pawn->tile_x, pawn->tile_y) == TILE_WATER && pawn->stamina > 0 && state->
+        ticks % 30 == 0) {
         pawn->stamina--;
     }
 
@@ -263,11 +323,12 @@ void pawn_tick(pawn_t* pawn, state_t* state) {
 
 handled_item:
 
+
 }
 
 void pawn_blit(pawn_t* pawn, state_t* state) {
     switch (pawn->pawn_type) {
-    case PLAYER: {
+    case PAWN_PLAYER: {
         static i32 sx = 0, sy = 128, flags = FLIP_NONE;
 
         if (pawn->dx == 1) {
@@ -307,10 +368,12 @@ void pawn_blit(pawn_t* pawn, state_t* state) {
             };
 
             sprite_sheet_blit_sprite(&state->sprite_sheet, &state->renderer, pawn->x - state->camera.tx,
-             pawn->y - state->camera.ty, 0 + (state->ticks >> 5 & 1) * 16, 112, PAWN_WIDTH, PAWN_HEIGHT, swimming_colors, flags);
+                                     pawn->y - state->camera.ty, 0 + (state->ticks >> 5 & 1) * 16, 112, PAWN_WIDTH,
+                                     PAWN_HEIGHT, swimming_colors, flags);
 
             sprite_sheet_blit_sprite(&state->sprite_sheet, &state->renderer, pawn->x - state->camera.tx,
-                         pawn->y - state->camera.ty, sx, sy, PAWN_WIDTH, PAWN_HEIGHT / 2, pawn->colors, flags);
+                                     pawn->y - state->camera.ty, sx, sy, PAWN_WIDTH, PAWN_HEIGHT / 2, pawn->colors,
+                                     flags);
         }
         else {
             sprite_sheet_blit_sprite(&state->sprite_sheet, &state->renderer, pawn->x - state->camera.tx,
@@ -362,6 +425,12 @@ void pawn_blit(pawn_t* pawn, state_t* state) {
         }
     }
     break;
+    case PAWN_CHEST: {
+
+        sprite_sheet_blit_sprite(&state->sprite_sheet, &state->renderer, pawn->x - state->camera.tx,
+                         pawn->y - state->camera.ty, 88, 0, PAWN_WIDTH,
+                         PAWN_HEIGHT, pawn->colors, FLIP_NONE);
+    }
     }
 }
 

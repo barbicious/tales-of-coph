@@ -8,7 +8,7 @@
 #include "sprite_sheet.h"
 
 void blit_hud(renderer_t* renderer, sprite_sheet_t* sprite_sheet, pawn_t* pawn) {
-    assert(pawn->pawn_type == PLAYER);
+    assert(pawn->pawn_type == PAWN_PLAYER);
 
     renderer_blit_rect(renderer, 0, SCREEN_HEIGHT - HUD_HEIGHT, SCREEN_WIDTH, HUD_HEIGHT, rgb_to_palette(0, 0, 0));
 

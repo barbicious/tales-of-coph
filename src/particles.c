@@ -29,6 +29,19 @@ void particle_blit(particle_t* particle, state_t* state) {
                              particle->x - state->camera.tx, particle->y - state->camera.ty, rgb_to_palette(5, 1, 1),
                              OPAQUE, FONT_FANCY);
     }
+    else if (particle->type == PARTICLE_TYPE_STONE) {
+        i32 colors[] = {
+            rgb_to_palette(1, 1, 1),
+            rgb_to_palette(2, 2, 2),
+            rgb_to_palette(3, 3, 3),
+            rgb_to_palette(4, 4, 4),
+        };
+
+        sprite_sheet_blit_sprite(&state->sprite_sheet, &state->renderer,
+                                 particle->x - state->camera.tx,
+                                 particle->y - state->camera.ty, 24, 224, 8,
+                                 8, colors, FLIP_NONE);
+    }
 }
 
 void particle_tick(particle_t* particle, state_t* state) {
