@@ -15,6 +15,11 @@ void sprite_sheet_init(sprite_sheet_t* sprite_sheet, string_t file_path) {
 
     FILE* file = fopen(file_path.data, "rb");
 
+    if (file == NULL) {
+        printf("%s", file_path.data);
+        exit(0);
+    }
+
     u8* pixels = stbi_load_from_file(file, &width, &height, &channels, 4);
 
     fclose(file);

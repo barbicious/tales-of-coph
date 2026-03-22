@@ -258,6 +258,7 @@ void pawn_tick(pawn_t* pawn, state_t* state) {
         arcade_tile_collides(&state->arcade, AS_TILE_X(pawn->x + 15), AS_TILE_Y(pawn->y + 15)) ||
         pawn->x < 0 || pawn->x > ARCADE_WIDTH * TILE_WIDTH) {
         pawn->x -= pawn->dx;
+        pawn->dx = 0;
     }
 
     pawn->y += pawn->dy;
@@ -268,6 +269,7 @@ void pawn_tick(pawn_t* pawn, state_t* state) {
         arcade_tile_collides(&state->arcade, AS_TILE_X(pawn->x + 15), AS_TILE_Y(pawn->y + 15)) ||
         pawn->y < 0 || pawn->y > ARCADE_HEIGHT * TILE_WIDTH) {
         pawn->y -= pawn->dy;
+        pawn->dy = 0;
     }
 
     if (pawn->pawn_type == PAWN_PLAYER) {

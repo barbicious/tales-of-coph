@@ -23,7 +23,9 @@ void blit(state_t* state) {
 
 /* PROPIERTYARY JINGOBIT MAIN!!!! @author barbicious GNU 67 LICENSCE!!!! */
 
-i32 main(void) {
+i32 main(i32* argc, char** argv) {
+    printf("%s\n", argv[0]);
+
     state_t state = {0};
 
     state_init(&state, tick, blit);
