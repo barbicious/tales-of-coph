@@ -1,0 +1,7 @@
+{
+	"InstallScripts" : 
+	[
+		"/home/barbicious/dev/tales-of-coph/build/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

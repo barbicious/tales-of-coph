@@ -5,6 +5,8 @@
 #include <math.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <stdbool.h>
 
 typedef int8_t i8;
 typedef int16_t i16;
@@ -25,12 +27,12 @@ typedef u32 b32;
 typedef size_t usize;
 typedef ssize_t isize;
 
-// No _t suffix cuz it is basically an integral type any ways
 typedef struct vector2 {
     f32 x, y;
 } v2;
 
 #pragma endregion types
+
 
 
 #pragma region usefulmacros
@@ -64,6 +66,39 @@ f32 lerp(f32 num_one, f32 num_two, f32 weight) {
 #endif
 
 #pragma endregion usefulfunctions
+
+
+
+#pragma region array
+
+#define DEFINE_ARRAY(type)\
+typedef struct array_##type {\
+    type* data;\
+    size_t length;\
+} array_##type##_s;\
+\
+type array_##type##_get(array_##type##_s* arr, usize idx);
+
+DEFINE_ARRAY(i32);
+
+#ifdef UTILS_IMPL
+
+#define IMPL_ARRAY(type)\
+    type array_##type##_get(array_##type##_s* arr, usize idx) {\
+        if (idx < 0 || idx >= arr->length) {\
+            printf("Array access out of bounds.\n");\
+            exit(0);\
+        }\
+        return arr->data[idx];\
+    }
+
+IMPL_ARRAY(i32);
+
+#endif
+
+#pragma endregion array
+
+
 
 #pragma region string
 
@@ -100,6 +135,7 @@ void string_free(string_t* string) {
 #endif
 
 #pragma endregion string
+
 
 
 #pragma region list
@@ -184,6 +220,8 @@ void list_destroy(list_t* list) {
 
 #pragma endregion list
 
+
+
 #pragma region noise
 
 // Computes a psuedorandom gradient value for a given point
@@ -259,3 +297,13 @@ f32 perlin(f32 x, f32 y) {
 #endif
 
 #pragma endregion noise
+
+
+
+#pragma region hashtable
+
+
+// TODO: Do this
+
+
+#pragma endregion hashtable

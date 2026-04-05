@@ -1,0 +1,42 @@
+file(REMOVE_RECURSE
+  "CMakeFiles/talesofcoph.dir/link.d"
+  "CMakeFiles/talesofcoph.dir/src/arcade.c.o"
+  "CMakeFiles/talesofcoph.dir/src/arcade.c.o.d"
+  "CMakeFiles/talesofcoph.dir/src/font.c.o"
+  "CMakeFiles/talesofcoph.dir/src/font.c.o.d"
+  "CMakeFiles/talesofcoph.dir/src/hud.c.o"
+  "CMakeFiles/talesofcoph.dir/src/hud.c.o.d"
+  "CMakeFiles/talesofcoph.dir/src/item.c.o"
+  "CMakeFiles/talesofcoph.dir/src/item.c.o.d"
+  "CMakeFiles/talesofcoph.dir/src/item_inst.c.o"
+  "CMakeFiles/talesofcoph.dir/src/item_inst.c.o.d"
+  "CMakeFiles/talesofcoph.dir/src/item_stack.c.o"
+  "CMakeFiles/talesofcoph.dir/src/item_stack.c.o.d"
+  "CMakeFiles/talesofcoph.dir/src/keyboard.c.o"
+  "CMakeFiles/talesofcoph.dir/src/keyboard.c.o.d"
+  "CMakeFiles/talesofcoph.dir/src/main.c.o"
+  "CMakeFiles/talesofcoph.dir/src/main.c.o.d"
+  "CMakeFiles/talesofcoph.dir/src/menu.c.o"
+  "CMakeFiles/talesofcoph.dir/src/menu.c.o.d"
+  "CMakeFiles/talesofcoph.dir/src/particles.c.o"
+  "CMakeFiles/talesofcoph.dir/src/particles.c.o.d"
+  "CMakeFiles/talesofcoph.dir/src/pawn.c.o"
+  "CMakeFiles/talesofcoph.dir/src/pawn.c.o.d"
+  "CMakeFiles/talesofcoph.dir/src/renderer.c.o"
+  "CMakeFiles/talesofcoph.dir/src/renderer.c.o.d"
+  "CMakeFiles/talesofcoph.dir/src/sprite_sheet.c.o"
+  "CMakeFiles/talesofcoph.dir/src/sprite_sheet.c.o.d"
+  "CMakeFiles/talesofcoph.dir/src/state.c.o"
+  "CMakeFiles/talesofcoph.dir/src/state.c.o.d"
+  "CMakeFiles/talesofcoph.dir/src/tile.c.o"
+  "CMakeFiles/talesofcoph.dir/src/tile.c.o.d"
+  "CMakeFiles/talesofcoph.dir/src/window.c.o"
+  "CMakeFiles/talesofcoph.dir/src/window.c.o.d"
+  "talesofcoph"
+  "talesofcoph.pdb"
+)
+
+# Per-language clean rules from dependency scanning.
+foreach(lang C)
+  include(CMakeFiles/talesofcoph.dir/cmake_clean_${lang}.cmake OPTIONAL)
+endforeach()

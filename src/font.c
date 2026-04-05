@@ -1,6 +1,5 @@
 #include "font.h"
 
-#include <stdio.h>
 #include <string.h>
 
 #include "renderer.h"

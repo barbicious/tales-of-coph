@@ -1,0 +1,3 @@
+/home/barbicious/dev/tales-of-coph/build/CMakeFiles/talesofcoph.dir
+/home/barbicious/dev/tales-of-coph/build/CMakeFiles/edit_cache.dir
+/home/barbicious/dev/tales-of-coph/build/CMakeFiles/rebuild_cache.dir

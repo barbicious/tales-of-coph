@@ -1,14 +1,9 @@
-#include <stdio.h>
-
 #define UTILS_IMPL
-#include <SDL2/SDL_scancode.h>
 
 #include "hud.h"
 #include "utils.h"
 
 #include "state.h"
-#include "item.h"
-#include "item_stack.h"
 #include "menu.h"
 
 void tick(state_t* state) {
@@ -23,9 +18,7 @@ void blit(state_t* state) {
 
 /* PROPIERTYARY JINGOBIT MAIN!!!! @author barbicious GNU 67 LICENSCE!!!! */
 
-i32 main(i32* argc, char** argv) {
-    printf("%s\n", argv[0]);
-
+i32 main(void) {
     state_t state = {0};
 
     state_init(&state, tick, blit);

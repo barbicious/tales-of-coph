@@ -78,8 +78,8 @@ void arcade_init(arcade_t* arcade) {
 }
 
 void arcade_blit(arcade_t* arcade, state_t* state) {
-    for (i32 y = 0; y < ARCADE_HEIGHT; y++) {
-        for (i32 x = 0; x < ARCADE_WIDTH; x++) {
+    for (usize y = 0; y < ARCADE_HEIGHT; y++) {
+        for (usize x = 0; x < ARCADE_WIDTH; x++) {
             tile_blit(arcade->tiles[y * ARCADE_WIDTH + x], state, x, y);
         }
     }
@@ -102,11 +102,11 @@ void arcade_blit(arcade_t* arcade, state_t* state) {
 void arcade_tick(arcade_t* arcade, state_t* state) {
     pawn_tick(&arcade->pawn, state);
 
-    for (int i = 0; i < arcade->items.length; i++) {
+    for (usize i = 0; i < arcade->items.length; i++) {
         item_inst_tick(list_get(&arcade->items, i), state);
     }
 
-    for (int i = 0; i < arcade->particles.length; i++) {
+    for (usize i = 0; i < arcade->particles.length; i++) {
         particle_t* particle = list_get(&arcade->particles, i);
 
         particle_tick(particle, state);
@@ -181,23 +181,18 @@ bool arcade_attempt_hit_tile(arcade_t* arcade, const i32 x, const i32 y, item_t*
 
     switch (tile) {
     case TILE_WATER: {
-    }
-    break;
+    } break;
     case TILE_GRASS: {
-    }
-    break;
+    } break;
     case TILE_DIRT: {
-    }
-    break;
+    } break;
     case TILE_STONE: {
         for (i32 i = 0; i < RAND_RANG(3, 7); i++) {
             particle_t* stone_particle = particle_create(PARTICLE_TYPE_STONE, x * TILE_WIDTH, y * TILE_HEIGHT);
             list_append(&arcade->particles, stone_particle);
         }
+    } break;
     }
-    break;
-    }
-
 
     return true;
 }

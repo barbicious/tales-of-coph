@@ -15,8 +15,8 @@ void sprite_sheet_init(sprite_sheet_t* sprite_sheet, string_t file_path) {
 
     FILE* file = fopen(file_path.data, "rb");
 
-    if (file == NULL) {
-        printf("%s", file_path.data);
+    if (file == nullptr) {
+        printf("Failed to load %s", file_path.data);
         exit(0);
     }
 
@@ -24,7 +24,7 @@ void sprite_sheet_init(sprite_sheet_t* sprite_sheet, string_t file_path) {
 
     fclose(file);
 
-    assert(pixels != NULL);
+    assert(pixels != nullptr);
 
     sprite_sheet->pixels = pixels;
     sprite_sheet->width = width;

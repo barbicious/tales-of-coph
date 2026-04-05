@@ -189,8 +189,7 @@ void pawn_tick(pawn_t* pawn, state_t* state) {
                 overshot_stamina = !overshot_stamina;
             }
         }
-    }
-        break;
+    } break;
     case PAWN_CHEST: {
         bool collided = false;
 
@@ -232,8 +231,7 @@ void pawn_tick(pawn_t* pawn, state_t* state) {
             pawn->dx = dx;
             pawn->dy = dy;
         }
-    }
-        break;
+    } break;
     }
 
     if (pawn->dx < 0) {
