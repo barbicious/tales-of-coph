@@ -65,15 +65,17 @@ void arcade_init(arcade_t* arcade) {
     memset(&arcade->data, TILE_DATA_UNINITIALIZED, sizeof(arcade->data));
 
     /* Init Pawns */
-    pawn_t player = {0};
-    pawn_init(&player, PAWN_PLAYER, 16, 16);
-    arcade->pawn = player;
-
     arcade->items = list_create();
     arcade->particles = list_create();
     arcade->pawns = list_create();
+
+    pawn_t* player = malloc(sizeof(pawn_t));
+    pawn_init(player, PAWN_PLAYER, 16, 16, 0);
+    arcade->pawn = player;
+    list_append(&arcade->pawns, player);
+
     pawn_t* chest = malloc(sizeof(pawn_t));
-    pawn_init(chest, PAWN_CHEST, 32, 32);
+    pawn_init(chest, PAWN_CHEST, 32, 32, 1);
     list_append(&arcade->pawns, chest);
 }
 
@@ -88,8 +90,6 @@ void arcade_blit(arcade_t* arcade, state_t* state) {
         pawn_blit(list_get(&arcade->pawns, i), state);
     }
 
-    pawn_blit(&arcade->pawn, state);
-
     for (usize i = 0; i < arcade->items.length; i++) {
         item_inst_blit(list_get(&arcade->items, i), state);
     }
@@ -100,8 +100,6 @@ void arcade_blit(arcade_t* arcade, state_t* state) {
 }
 
 void arcade_tick(arcade_t* arcade, state_t* state) {
-    pawn_tick(&arcade->pawn, state);
-
     for (usize i = 0; i < arcade->items.length; i++) {
         item_inst_tick(list_get(&arcade->items, i), state);
     }
@@ -132,8 +130,6 @@ bool arcade_tile_collides(const arcade_t* arcade, i32 x, i32 y) {
     return arcade_get_tile_at(arcade, x, y) == TILE_TREE || arcade_get_tile_at(arcade, x, y) == TILE_STONE;
 }
 
-
-
 bool arcade_attempt_hit_tile(arcade_t* arcade, const i32 x, const i32 y, item_t* item) {
     if (item->tool == TOOL_NONE) {
         return false;
@@ -147,17 +143,15 @@ bool arcade_attempt_hit_tile(arcade_t* arcade, const i32 x, const i32 y, item_t*
 
     i32 dmg = 1;
 
-    auto data = &arcade->data[y * ARCADE_WIDTH + x];
+    i32* data = &arcade->data[y * ARCADE_WIDTH + x];
 
     if (*data == TILE_DATA_UNINITIALIZED) {
         *data = TILE_HEALTH;
 
         *data -= dmg;
-    }
-    else if (*data > 1) {
+    } else if (*data > 1) {
         *data -= dmg;
-    }
-    else {
+    } else {
         switch (tile) {
         case TILE_WATER: {
         }
@@ -187,7 +181,7 @@ bool arcade_attempt_hit_tile(arcade_t* arcade, const i32 x, const i32 y, item_t*
     case TILE_DIRT: {
     } break;
     case TILE_STONE: {
-        for (i32 i = 0; i < RAND_RANG(3, 7); i++) {
+        for (i32 i = 0; i < RAND_RANG(1, 4); i++) {
             particle_t* stone_particle = particle_create(PARTICLE_TYPE_STONE, x * TILE_WIDTH, y * TILE_HEIGHT);
             list_append(&arcade->particles, stone_particle);
         }
@@ -197,16 +191,49 @@ bool arcade_attempt_hit_tile(arcade_t* arcade, const i32 x, const i32 y, item_t*
     return true;
 }
 
-bool arcade_pawn_collides(const arcade_t* arcade, i32 x, i32 y) {
+pawn_t* arcade_pawn_collides(arcade_t* arcade, i32 x, i32 y, u32 id) {
     for (usize i = 0; i < arcade->pawns.length; i++) {
+        if (i == id) continue;
 
+        pawn_t* pawn = list_get(&arcade->pawns, i);
+
+        if (RECT_COLLIDES(x, y, PAWN_WIDTH, PAWN_HEIGHT, pawn->x, pawn->y, PAWN_WIDTH, PAWN_HEIGHT)) {
+            return pawn;
+        }
     }
+
+    return NULL;
+}
+
+pawn_t* arcade_pawn_collides_axis(arcade_t* arcade, i32 x, i32 y, u32 id, bool horizontal) {
+    if (horizontal) {
+        for (usize i = 0; i < arcade->pawns.length; i++) {
+            if (i == id) continue;
+
+            pawn_t* pawn = list_get(&arcade->pawns, i);
+
+            if (RECT_COLLIDES(x, y, PAWN_WIDTH, PAWN_HEIGHT, pawn->x - pawn->dx, pawn->y, PAWN_WIDTH, PAWN_HEIGHT)) {
+                return pawn;
+            }
+        }
+    } else {
+        for (usize i = 0; i < arcade->pawns.length; i++) {
+            if (i == id) continue;
+
+            pawn_t* pawn = list_get(&arcade->pawns, i);
+
+            if (RECT_COLLIDES(x, y, PAWN_WIDTH, PAWN_HEIGHT, pawn->x, pawn->y - pawn->dy, PAWN_WIDTH, PAWN_HEIGHT)) {
+                return pawn;
+            }
+        }
+    }
+
+    return NULL;
 }
 
 void arcade_destroy(arcade_t* arcade) {
     list_destroy(&arcade->particles);
     list_destroy(&arcade->pawns);
     list_destroy(&arcade->items);
-    pawn_destroy(&arcade->pawn);
 }
 

@@ -12,7 +12,7 @@ void tick(state_t* state) {
 
 void blit(state_t* state) {
     arcade_blit(&state->arcade, state);
-    blit_hud(&state->renderer, &state->sprite_sheet, &state->arcade.pawn);
+    blit_hud(&state->renderer, &state->sprite_sheet, state->arcade.pawn);
     blit_menu(state);
 }
 

@@ -36,12 +36,19 @@ static bool hit_tile = false;
 
 #pragma endregion player_globals
 
-void pawn_init(pawn_t* pawn, pawn_type_e pawn_type, i32 x, i32 y) {
+void pawn_remove_furniture(pawn_t* pawn, state_t* state, u32 furniture_flag) {
+    pawn->furniture_id = -1;
+    state->menu &= ~furniture_flag;
+}
+
+void pawn_init(pawn_t* pawn, pawn_type_e pawn_type, i32 x, i32 y, u32 id) {
+    memset(pawn, 0, sizeof(pawn_t));
     pawn->pawn_type = pawn_type;
     pawn->x = x;
     pawn->y = y;
     pawn->direction = DIRECTION_SOUTH;
     pawn->equipped_item = 0;
+    pawn->id = id;
 
     switch (pawn->pawn_type) {
     case PAWN_PLAYER: {
@@ -96,21 +103,33 @@ void pawn_tick(pawn_t* pawn, state_t* state) {
             }
         }
 
+        if (keyboard_key_down(&state->keyboard, SDL_SCANCODE_TAB) &&
+                state->menu == (MENU_INVENTORY | MENU_CHEST)) {
+            pawn_t* furniture = list_get(&state->arcade.pawns, pawn->furniture_id);
+
+            list_append(&furniture->inventory, list_get(&pawn->inventory, pawn->equipped_item));
+        }
+
         if (keyboard_key_down(&state->keyboard, SDL_SCANCODE_S) && pawn->y < (ARCADE_HEIGHT - 1) * TILE_HEIGHT) {
             pawn->dy = 1;
+
+            pawn_remove_furniture(pawn, state, MENU_CHEST);
         }
 
         if (keyboard_key_down(&state->keyboard, SDL_SCANCODE_W) && pawn->y > 0) {
             if (pawn->dy != 0) {
                 pawn->dy = 0;
-            }
-            else {
+            } else {
                 pawn->dy = -1;
             }
+
+            pawn_remove_furniture(pawn, state, MENU_CHEST);
         }
 
         if (keyboard_key_down(&state->keyboard, SDL_SCANCODE_D) && pawn->x < (ARCADE_WIDTH - 1) * TILE_WIDTH) {
             pawn->dx = 1;
+
+            pawn_remove_furniture(pawn, state, MENU_CHEST);
         }
 
         if (keyboard_key_down(&state->keyboard, SDL_SCANCODE_A) && pawn->x > 0) {
@@ -120,9 +139,45 @@ void pawn_tick(pawn_t* pawn, state_t* state) {
             else {
                 pawn->dx = -1;
             }
+
+            pawn_remove_furniture(pawn, state, MENU_CHEST);
         }
 
-        if (keyboard_key_down(&state->keyboard, SDL_SCANCODE_SPACE) &&
+        if (keyboard_key_down(&state->keyboard, SDL_SCANCODE_R)) {
+            i32 dx = 0, dy = 0;
+
+            switch (pawn->direction) {
+            case DIRECTION_NORTH: {
+                dx = 0;
+                dy = -1;
+            } break;
+            case DIRECTION_SOUTH: {
+                dx = 0;
+                dy = 1;
+            } break;
+            case DIRECTION_EAST: {
+                dx = -1;
+                dy = 0;
+            } break;
+            case DIRECTION_WEST: {
+                dx = 1;
+                dy = 0;
+            } break;
+            }
+
+            pawn_t* colliding_pawn = arcade_pawn_collides(&state->arcade, pawn->x + (dx * PAWN_WIDTH), pawn->y + (dy * PAWN_HEIGHT), pawn->id);
+
+            if (colliding_pawn != NULL) {
+                switch (colliding_pawn->pawn_type) {
+                    case PAWN_CHEST: {
+                        pawn->furniture_id = colliding_pawn->id;
+                        state->menu |= MENU_CHEST;
+                    } break;
+                }
+            } else {
+                pawn_remove_furniture(pawn, state, MENU_CHEST);
+            }
+        } else if (keyboard_key_down(&state->keyboard, SDL_SCANCODE_SPACE) &&
             ((item_stack_t*)list_get(&pawn->inventory, pawn->equipped_item))->item->tool != TOOL_NONE &&
             swing_ticks_left <= 0 &&
             pawn->stamina > 0) {
@@ -171,12 +226,11 @@ void pawn_tick(pawn_t* pawn, state_t* state) {
         }
 
         if (keyboard_key_pressed(&state->keyboard, SDL_SCANCODE_E)) {
-            state->menu ^= SDL_SCANCODE_MENU;
+            state->menu ^= MENU_INVENTORY;
         }
 
         if ((state->menu & MENU_INVENTORY) == MENU_INVENTORY) {
-            if (keyboard_key_down(&state->keyboard, SDL_SCANCODE_DOWN) && pawn->equipped_item < pawn->inventory.length -
-                1) {
+            if (keyboard_key_down(&state->keyboard, SDL_SCANCODE_DOWN) && pawn->equipped_item < pawn->inventory.length - 1) {
                 pawn->equipped_item++;
                 }
             else if (keyboard_key_down(&state->keyboard, SDL_SCANCODE_UP) && pawn->equipped_item > 0) {
@@ -195,34 +249,38 @@ void pawn_tick(pawn_t* pawn, state_t* state) {
 
         i32 dx = 0, dy = 0;
 
-        if (RECT_COLLIDES(pawn->x, pawn->y, PAWN_WIDTH, PAWN_HEIGHT, state->arcade.pawn.x - state->arcade.pawn.dx, state->arcade.pawn.y, PAWN_WIDTH, PAWN_HEIGHT)) {
-            collided = true;
-            state->arcade.pawn.y -= state->arcade.pawn.dy;
+        pawn_t* collided_pawn = arcade_pawn_collides_axis(&state->arcade, pawn->x, pawn->y, pawn->id, true);
 
-            dy = state->arcade.pawn.dy;
+        if (collided_pawn != NULL) {
+            collided = true;
+            collided_pawn->y -= collided_pawn->dy;
+
+            dy = collided_pawn->dy;
 
             state->camera.ty -= dy;
 
-            if (state->arcade.pawn.y <= SCREEN_HEIGHT / 2 - HALF_PAWN_WIDTH) {
+            if (state->arcade.pawn->y <= SCREEN_HEIGHT / 2 - HALF_PAWN_WIDTH) {
                 state->camera.ty = 0;
             }
-            else if (state->arcade.pawn.y >= ARCADE_HEIGHT * TILE_HEIGHT - SCREEN_HEIGHT / 2 + HUD_HEIGHT - HALF_PAWN_WIDTH) {
+            else if (state->arcade.pawn->y >= ARCADE_HEIGHT * TILE_HEIGHT - SCREEN_HEIGHT / 2 + HUD_HEIGHT - HALF_PAWN_WIDTH) {
                 state->camera.ty = ARCADE_HEIGHT * TILE_HEIGHT - SCREEN_HEIGHT + HUD_HEIGHT;
             }
         }
 
-        if (RECT_COLLIDES(pawn->x, pawn->y, PAWN_WIDTH, PAWN_HEIGHT, state->arcade.pawn.x, state->arcade.pawn.y - state->arcade.pawn.dy, PAWN_WIDTH, PAWN_HEIGHT)) {
-            collided = true;
-            state->arcade.pawn.x -= state->arcade.pawn.dx;
+        collided_pawn = arcade_pawn_collides_axis(&state->arcade, pawn->x, pawn->y, pawn->id, false);
 
-            dx = state->arcade.pawn.dx;
+        if (collided_pawn != NULL) {
+            collided = true;
+            collided_pawn->x -= collided_pawn->dx;
+
+            dx = collided_pawn->dx;
 
             state->camera.tx -= dx;
 
-            if (state->arcade.pawn.x <= SCREEN_WIDTH / 2 - HALF_PAWN_WIDTH) {
+            if (state->arcade.pawn->x <= SCREEN_WIDTH / 2 - HALF_PAWN_WIDTH) {
                 state->camera.tx = 0;
             }
-            else if (state->arcade.pawn.x >= ARCADE_WIDTH * TILE_WIDTH - SCREEN_WIDTH / 2 - HALF_PAWN_WIDTH) {
+            else if (state->arcade.pawn->x >= ARCADE_WIDTH * TILE_WIDTH - SCREEN_WIDTH / 2 - HALF_PAWN_WIDTH) {
                 state->camera.tx = ARCADE_WIDTH * TILE_WIDTH - SCREEN_WIDTH;
             }
         }

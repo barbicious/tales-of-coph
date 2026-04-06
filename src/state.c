@@ -24,7 +24,7 @@ void state_init(state_t* state, void (*tick)(struct state* state), void (*blit)(
     state->running = true;
 
     sprite_sheet_t sprite_sheet = {0};
-    sprite_sheet_init(&sprite_sheet, string_create("../res/tiles.png"));
+    sprite_sheet_init(&sprite_sheet, string_create("res/tiles.png"));
     state->sprite_sheet = sprite_sheet;
 
     bitmap_font_t font = {0};

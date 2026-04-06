@@ -26,6 +26,9 @@ typedef struct pawn {
 
     usize equipped_item;
 
+    u32 id;
+    u32 furniture_id;
+
     i32 x, y;
     i32 dx, dy;
 
@@ -40,7 +43,7 @@ typedef struct pawn {
     list_t inventory;
 } pawn_t;
 
-void pawn_init(pawn_t* pawn, pawn_type_e pawn_type, i32 x, i32 y);
+void pawn_init(pawn_t* pawn, pawn_type_e pawn_type, i32 x, i32 y, u32 id);
 void pawn_tick(pawn_t* pawn, state_t* state);
 void pawn_blit(pawn_t* pawn, state_t* state);
 void pawn_destroy(pawn_t* pawn);

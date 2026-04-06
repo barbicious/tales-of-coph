@@ -83,6 +83,8 @@ DEFINE_ARRAY(i32);
 
 #ifdef UTILS_IMPL
 
+#include <stdio.h>
+
 #define IMPL_ARRAY(type)\
     type array_##type##_get(array_##type##_s* arr, usize idx) {\
         if (idx < 0 || idx >= arr->length) {\
